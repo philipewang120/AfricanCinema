@@ -384,7 +384,7 @@ function AdminDashboard() {
 
   if (authorized === null) return (
     <>
-      <style>{STYLES}</style>
+     
       <div className="adm-page" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
         <CircularProgress sx={{ color: "var(--accent)" }} />
       </div>
@@ -395,7 +395,7 @@ function AdminDashboard() {
 
   return (
     <>
-      <style>{STYLES}</style>
+      
       <div className="adm-page">
 
         {/* NAV */}
