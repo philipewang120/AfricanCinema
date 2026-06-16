@@ -1,0 +1,125 @@
+
+  :root {
+    --ink: #0f0f12; --surface: #16161c; --card: #1e1e27; --raised: #26262f;
+    --accent: #e8c547; --accent2: #5de8c5; --muted: #6b6b7a;
+    --border: rgba(255,255,255,0.07); --radius-lg: 18px;
+    --font-display: 'Bebas Neue', sans-serif; --font-body: 'DM Sans', sans-serif;
+  }
+  body { background: var(--ink); font-family: var(--font-body); color: #e0e0e8; margin: 0; }
+  .auth-page { min-height: 100vh; display: flex; flex-direction: column; background: var(--ink); }
+  .auth-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; height: 68px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .auth-logo {
+    font-family: var(--font-display); font-size: 24px; letter-spacing: 2px;
+    color: var(--accent); display: flex; align-items: center; gap: 8px; cursor: pointer;
+  }
+  .auth-logo-icon {
+    width: 34px; height: 34px; background: var(--accent); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; color: var(--ink);
+  }
+  .auth-body { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+  .auth-card {
+    width: 100%; max-width: 420px; background: var(--card);
+    border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 36px 32px;
+  }
+  .auth-title {
+    font-family: var(--font-display); font-size: 40px; letter-spacing: 2px;
+    text-align: center; margin-bottom: 8px;
+  }
+  .auth-sub { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .auth-error {
+    background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.25);
+    border-radius: 10px; padding: 10px; font-size: 13px; color: #ff6b6b; margin-bottom: 16px; text-align: center;
+  }
+  .auth-submit {
+    width: 100%; margin-top: 20px !important; background: var(--accent) !important;
+    color: var(--ink) !important; border-radius: 12px !important; padding: 12px !important;
+    font-weight: 600 !important; text-transform: none !important;
+  }
+  .auth-footer { text-align: center; margin-top: 24px; font-size: 13px; color: var(--muted); }
+  .auth-footer a { color: var(--accent); font-weight: 600; text-decoration: none; }
+
+  /* ── DIVIDER ── */
+  .login-divider {
+    margin: 28px 0 !important;
+    font-family: var(--font-body) !important;
+    font-size: 11px !important;
+    letter-spacing: 2px !important;
+    color: var(--muted) !important;
+  }
+
+  .login-divider::before,
+  .login-divider::after {
+    border-color: var(--border) !important;
+  }
+
+  /* ── OAUTH BUTTONS ── */
+  .login-oauth-btn {
+    width: 100%;
+    height: 44px !important;
+    border-radius: 12px !important;
+    text-transform: none !important;
+    font-family: var(--font-body) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: #e0e0e8 !important;
+    border-color: var(--border) !important;
+    background: var(--raised) !important;
+    justify-content: flex-start !important;
+    padding-left: 20px !important;
+    gap: 12px !important;
+    transition: background var(--transition), border-color var(--transition) !important;
+    margin-bottom: 10px !important;
+    display: flex !important;
+  }
+
+  .login-oauth-btn:last-child { margin-bottom: 0 !important; }
+
+  .login-oauth-btn:hover {
+    background: #2e2e3a !important;
+    border-color: rgba(255,255,255,0.18) !important;
+  }
+.login-redirect-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(232, 197, 71, 0.08);
+  border: 1px solid rgba(232, 197, 71, 0.25);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+}
+
+.login-redirect-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.login-redirect-msg {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.login-redirect-sub {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.login-redirect-link {
+  color: var(--accent2);
+  cursor: pointer;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.login-redirect-link:hover {
+  opacity: 0.8;
+}
