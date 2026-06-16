@@ -7,6 +7,8 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import db from "../db.js";
 
+const saltRounds = 10;
+
 passport.use(
   "local",
   new LocalStrategy({ usernameField: "email" }, async (email, password, cb) => {
@@ -42,9 +44,10 @@ passport.use(
         ]);
         if (result.rows.length === 0) {
           const profile_pic = profile.photos[0]?.value || null;
+          const hashedPlaceholder = await bcrypt.hash(`google-oauth-${profile.id}`, saltRounds);
           const newUser = await db.query(
             "INSERT INTO users (email, password, profile_pic) VALUES ($1, $2, $3) RETURNING *",
-            [profile.emails[0].value, "google", profile_pic]
+            [profile.emails[0].value, hashedPlaceholder, profile_pic]
           );
           return cb(null, newUser.rows[0]);
         } else {
@@ -73,9 +76,10 @@ passport.use(
         ]);
         if (result.rows.length === 0) {
           const profile_pic = profile.photos?.[0]?.value || null;
+          const hashedPlaceholder = await bcrypt.hash(`facebook-oauth-${profile.id}`, saltRounds);
           const newUser = await db.query(
             "INSERT INTO users (email, password, profile_pic) VALUES ($1, $2, $3) RETURNING *",
-            [profile.emails?.[0]?.value || null, "facebook", profile_pic]
+            [profile.emails?.[0]?.value || null, hashedPlaceholder, profile_pic]
           );
           return cb(null, newUser.rows[0]);
         } else {
