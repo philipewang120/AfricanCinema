@@ -75,7 +75,7 @@ router.get(
       );
 
       res.redirect(
-        `https://african-cinema.vercel.app/home?token=${token}`
+        `https://african-cinema.vercel.app/?token=${token}`
       );
     } catch (err) {
       console.error(err);
@@ -122,7 +122,7 @@ router.get("/auth/facebook/callback",
       );
 
       res.redirect(
-        `https://african-cinema.vercel.app/home?token=${token}`
+        `https://african-cinema.vercel.app/?token=${token}`
       );
     } catch (err) {
       console.error(err);
@@ -167,7 +167,7 @@ router.get("/auth/github/callback",
       );
 
       res.redirect(
-        `https://african-cinema.vercel.app/home?token=${token}`
+        `https://african-cinema.vercel.app/?token=${token}`
       );
     } catch (err) {
       console.error(err);
