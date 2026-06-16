@@ -39,3 +39,4 @@ migrations/001_schema.sql
 npm-debug.log*
 
 .DS_Store
+client/.env.example
