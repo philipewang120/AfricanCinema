@@ -39,7 +39,7 @@ function RegisterPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`http://localhost:3000/register`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -113,7 +113,7 @@ function RegisterPage() {
               className="login-oauth-btn"
               variant="outlined"
               startIcon={<Google sx={{ fontSize: 18 }} />}
-              href={`http://localhost:3000/auth/google`}
+              href={`${import.meta.env.VITE_API_URL}/auth/google`}
             >
               Register with Google
             </Button>
