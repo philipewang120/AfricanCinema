@@ -305,6 +305,8 @@ function AfricanPage() {
   const [loadingMore,  setLoadingMore]  = useState(false);
   const [latestPage,   setLatestPage]   = useState(1);
   const [hasMoreLatest,setHasMoreLatest]= useState(true);
+//auth role
+  const [role, setRole] = useState(null);
 
   // Logged-in user info for navbar
   const [currentUser, setCurrentUser] = useState(null);
@@ -335,6 +337,7 @@ useEffect(() => {
   }
 
   setIsLoggedIn(true);
+  setRole(payload.role ?? null); // Set user role from token payload
 
   // Load current user for navbar
   (async () => {
@@ -495,8 +498,34 @@ useEffect(() => {
   className="af-nav-actions"
   sx={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}
 >
+
+  
   {isLoggedIn ? (
     <>
+    {/* Admin button — only visible to admins */}
+    {role === "admin" && (
+      <Button
+        onClick={() => navigate("/admin")}
+        sx={{
+          background: "rgba(255,100,100,0.08)",
+          border: "1px solid rgba(255,100,100,0.2)",
+          borderRadius: "10px",
+          color: "#ff6b6b",
+          fontFamily: "var(--font-body)",
+          fontWeight: 600,
+          fontSize: 12,
+          textTransform: "none",
+          padding: "5px 14px",
+          transition: "all 0.2s",
+          "&:hover": {
+            background: "rgba(255,100,100,0.15)",
+            borderColor: "rgba(255,100,100,0.4)",
+          },
+        }}
+      >
+        Admin
+      </Button>
+    )}
       <Tooltip title="Profile settings">
         <div
           className="af-profile-trigger"
