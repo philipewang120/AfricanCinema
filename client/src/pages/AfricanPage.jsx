@@ -2,10 +2,10 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch, getToken } from "../api";
 import {
-  Box, Button, Stack, Typography, Avatar, Tooltip, Toolbar, CircularProgress,
+  Box, Button, Stack, Typography, Avatar, Tooltip, Toolbar, CircularProgress, Menu, MenuItem, 
 } from "@mui/material";
 import {
-  Movie, Star, TrendingUp, NewReleases, Public,
+  Movie, Star, TrendingUp, NewReleases, Public, Person, Settings,
   ArrowBack, Add, ChevronLeft, ChevronRight, Refresh,
   Search as SearchIcon, Close as CloseIcon, Logout,
 } from "@mui/icons-material";
@@ -314,6 +314,8 @@ function AfricanPage() {
   const [username, setUsername]= useState("")
   const [profilePic,  setProfilePic]  = useState("");
   const [initial,     setInitial]     = useState("U");
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const menuOpen = Boolean(menuAnchor);
 
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -363,6 +365,13 @@ useEffect(() => {
     localStorage.removeItem("token");
     navigate("/login");
   }
+
+  function handleMenuOpen(e) {
+  setMenuAnchor(e.currentTarget);
+}
+  function handleMenuClose() {
+  setMenuAnchor(null);
+}
 
   // Load featured once
   useEffect(() => {
@@ -528,21 +537,58 @@ useEffect(() => {
         Admin
       </Button>
     )}
-      <Tooltip title="Profile settings">
-        <div
-          className="af-profile-trigger"
-          onClick={() => navigate(`/settings`)}
-        >
-          {profilePic ? (
-            <Avatar src={profilePic} sx={{ width: 38, height: 38 }} />
-          ) : (
-            <div className="nav-avatar-initials">{initial}</div>
-          )}
-          <Typography className="af-hello-text">
-            Hello, {email}!
-          </Typography>
-        </div>
-      </Tooltip>
+   <div className="af-profile-trigger" onClick={handleMenuOpen}>
+  {profilePic ? (
+    <Avatar src={profilePic} sx={{ width: 38, height: 38 }} />
+  ) : (
+    <div className="nav-avatar-initials">{initial}</div>
+  )}
+  <Typography className="af-hello-text">
+    Hello, {email}!
+  </Typography>
+</div>
+
+<Menu
+  anchorEl={menuAnchor}
+  open={menuOpen}
+  onClose={handleMenuClose}
+  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+  transformOrigin={{ vertical: "top", horizontal: "right" }}
+  slotProps={{
+    paper: {
+      sx: {
+        background: "var(--card)",
+        border: "1px solid var(--border)",
+        borderRadius: "12px",
+        mt: 1,
+        minWidth: 180,
+        boxShadow: "0 12px 32px rgba(0,0,0,0.4)",
+      },
+    },
+  }}
+>
+  <MenuItem
+    onClick={() => { handleMenuClose(); navigate(`/profile/${currentUser?.username}`); }}
+    sx={{
+      fontFamily: "var(--font-body)", fontSize: 14, color: "#e0e0e8",
+      gap: 1.2, py: 1.2, px: 2,
+      "&:hover": { background: "rgba(255,255,255,0.05)" },
+    }}
+  >
+    <Person sx={{ fontSize: 18, color: "var(--accent2)" }} /> Profile
+  </MenuItem>
+
+  <MenuItem
+    onClick={() => { handleMenuClose(); navigate("/settings"); }}
+    sx={{
+      fontFamily: "var(--font-body)", fontSize: 14, color: "#e0e0e8",
+      gap: 1.2, py: 1.2, px: 2,
+      "&:hover": { background: "rgba(255,255,255,0.05)" },
+    }}
+  >
+    <Settings sx={{ fontSize: 18, color: "var(--accent2)" }} /> Settings
+  </MenuItem>
+</Menu>
 
       <Tooltip title="Log out">
         <Button
