@@ -30,7 +30,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "https://movie-rater-1a.onrender.com/auth/google/mymovies",
+      callbackURL: "https://africancinema.onrender.com/auth/google/callback",
       userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
     },
     async (accessToken, refreshToken, profile, cb) => {
@@ -62,7 +62,7 @@ passport.use(
     {
       clientID: process.env.FACEBOOK_CLIENT_ID,
       clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-      callbackURL: "https://movie-rater-1a.onrender.com/auth/facebook/callback",
+      callbackURL: "https://africancinema.onrender.com/auth/facebook/callback",
       profileFields: ["id", "displayName", "emails", "photos"]
     },
     async (accessToken, refreshToken, profile, cb) => {
@@ -93,7 +93,7 @@ passport.use(
     {
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: "https://movie-rater-1a.onrender.com/auth/github/mymovies",
+      callbackURL: "https://africancinema.onrender.com/auth/github/callback",
       profileFields: ["id", "displayName", "emails", "photos"],
        scope: ["user:email"], 
     },
