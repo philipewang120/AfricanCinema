@@ -500,7 +500,7 @@ useEffect(() => {
       <Tooltip title="Profile settings">
         <div
           className="af-profile-trigger"
-          onClick={() => navigate(`/profile/${currentUser?.username}`)}
+          onClick={() => navigate(`/settings`)}
         >
           {profilePic ? (
             <Avatar src={profilePic} sx={{ width: 38, height: 38 }} />
