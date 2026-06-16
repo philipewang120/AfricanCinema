@@ -45,4 +45,20 @@ function ProtectedRoute({ children, message }) {
   return children;
 }
 
-export default ProtectedRoute;
+function AdminRoute({ children }) {
+  const token = localStorage.getItem("token");
+  if (!token) return <Navigate to="/login" replace />;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    if (payload.exp * 1000 < Date.now()) {
+      localStorage.removeItem("token");
+      return <Navigate to="/login" replace />;
+    }
+    if (payload.role !== "admin") return <Navigate to="/" replace />;
+  } catch {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
+export { ProtectedRoute, AdminRoute };

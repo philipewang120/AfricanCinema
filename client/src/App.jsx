@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "react-error-boundary";
-import ProtectedRoute from "./components/ProtectedRoute";
+import {ProtectedRoute, AdminRoute} from "./components/ProtectedRoute";
 
 import AfricanPage from "./pages/AfricanPage";
 import SubmitMoviePage from "./pages/SubmitMoviePage";
@@ -28,7 +28,7 @@ function App() {
     </ProtectedRoute>
   }
 />
-          <Route path="/admin"    element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin"    element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
         </Routes>
       </ErrorBoundary>
