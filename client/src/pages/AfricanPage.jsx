@@ -321,6 +321,15 @@ function AfricanPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
 useEffect(() => {
+  // Handle OAuth redirect — token arrives via URL query param
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlToken = urlParams.get("token");
+  if (urlToken) {
+    localStorage.setItem("token", urlToken);
+    // Clean the URL so the token isn't sitting in browser history/address bar
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
   const token = localStorage.getItem("token");
   if (!token) {
     setIsLoggedIn(false);
