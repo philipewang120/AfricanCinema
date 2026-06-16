@@ -324,6 +324,7 @@ useEffect(() => {
     setIsLoggedIn(false);
     return;
   }
+
   try {
     const payload = JSON.parse(atob(token.split(".")[1]));
     if (payload.exp * 1000 < Date.now()) {
@@ -331,14 +332,15 @@ useEffect(() => {
       setIsLoggedIn(false);
       return;
     }
+
+    setIsLoggedIn(true);
+    setRole(payload.role ?? null);   
+
   } catch {
     setIsLoggedIn(false);
     return;
   }
-
-  setIsLoggedIn(true);
-  setRole(payload.role ?? null); // Set user role from token payload
-
+  
   // Load current user for navbar
   (async () => {
     try {
