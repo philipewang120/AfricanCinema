@@ -95,30 +95,36 @@ passport.use(
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
       callbackURL: "https://africancinema.onrender.com/auth/github/callback",
       profileFields: ["id", "displayName", "emails", "photos"],
-       scope: ["user:email"], 
+      scope: ["user:email"],
     },
     async (accessToken, refreshToken, profile, cb) => {
       try {
-        console.log(profile);
-        if (!profile.emails?.[0]?.value ||profile.emails?.[0]?.value.length === 0) {
-        return cb(null, false, {
-        message: "Your GitHub account has no public email, try registering with an email address"
-  });
-}
-        const result = await db.query("SELECT * FROM users WHERE email = $1", [
-          profile.emails?.[0]?.value,
-        ]);
-        if (result.rows.length === 0) {
-          const profile_pic = profile.photos?.[0]?.value || null;
-          const newUser = await db.query(
-            "INSERT INTO users (email, password, profile_pic) VALUES ($1, $2, $3) RETURNING *",
-            [profile.emails?.[0]?.value || null, "github", profile_pic]
-          );
-          return cb(null, newUser.rows[0]);
-        } else {
+        const email = profile.emails?.[0]?.value;
+
+        if (!email) {
+          return cb(null, false, {
+            message: "Your GitHub account has no public email. Try registering with an email address instead.",
+          });
+        }
+
+        const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+
+        if (result.rows.length > 0) {
           return cb(null, result.rows[0]);
         }
+
+        const profile_pic = profile.photos?.[0]?.value || null;
+        const hashedPlaceholder = await bcrypt.hash(`github-oauth-${profile.id}`, saltRounds);
+
+        const newUser = await db.query(
+          "INSERT INTO users (email, password, profile_pic) VALUES ($1, $2, $3) RETURNING *",
+          [email, hashedPlaceholder, profile_pic]
+        );
+
+        return cb(null, newUser.rows[0]);
+
       } catch (err) {
+        console.error("GitHub strategy error:", err);
         return cb(err);
       }
     }
