@@ -41,6 +41,144 @@ router.get("/auth/user", verifyToken, (req, res) => {
   }
 });
 
+//google auth routes
+router.get("/auth/google", authLimiter,
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", {
+    failureRedirect:
+      "https://african-cinema.vercel.app/login",
+    session: false,
+  }),
+  async (req, res) => {
+    try {
+      const username = await ensureUsername(
+        req.user.id,
+        req.user.email
+      );
+
+      const role = await getUserRole(req.user.id);
+
+      const token = jwt.sign(
+        {
+          id: req.user.id,
+          email: req.user.email,
+          profile_pic: req.user.profile_pic,
+          username,
+          role,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      res.redirect(
+        `https://african-cinema.vercel.app/home?token=${token}`
+      );
+    } catch (err) {
+      console.error(err);
+
+      res.redirect(
+        "https://african-cinema.vercel.app/login"
+      );
+    }
+  }
+);
+
+
+//FACEBOOK 
+router.get("/auth/facebook",
+  authLimiter,
+  passport.authenticate("facebook", { scope: ["email"] })
+);
+
+router.get("/auth/facebook/callback",
+  authLimiter,
+  passport.authenticate("facebook", {
+    failureRedirect: "https://african-cinema.vercel.app/login",
+    session: false
+  }),
+  async (req, res) => {
+    try {
+      const username = await ensureUsername(
+        req.user.id,
+        req.user.email
+      );
+
+      const role = await getUserRole(req.user.id);
+
+      const token = jwt.sign(
+        {
+          id: req.user.id,
+          email: req.user.email,
+          profile_pic: req.user.profile_pic,
+          username,
+          role,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      res.redirect(
+        `https://african-cinema.vercel.app/home?token=${token}`
+      );
+    } catch (err) {
+      console.error(err);
+
+      res.redirect(
+        "https://african-cinema.vercel.app/login"
+      );
+    }
+  }
+
+);
+
+// GITHUB 
+router.get("/auth/github", authLimiter,
+  passport.authenticate("github", { scope: ["user:email"] })
+);
+
+router.get("/auth/github/callback",
+  passport.authenticate("github", {
+    failureRedirect: "https://african-cinema.vercel.app/login",
+    session: false
+  }),
+  async (req, res) => {
+    try {
+      const username = await ensureUsername(
+        req.user.id,
+        req.user.email
+      );
+
+      const role = await getUserRole(req.user.id);
+
+      const token = jwt.sign(
+        {
+          id: req.user.id,
+          email: req.user.email,
+          profile_pic: req.user.profile_pic,
+          username,
+          role,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      res.redirect(
+        `https://african-cinema.vercel.app/home?token=${token}`
+      );
+    } catch (err) {
+      console.error(err);
+
+      res.redirect(
+        "https://african-cinema.vercel.app/login"
+      );
+    }
+  }
+);
+// login route
 router.post("/login", authLimiter, (req, res, next) => {
   passport.authenticate("local", async (err, user) => {
     if (err) return res.status(500).json({ message: "Server error" });
@@ -70,7 +208,7 @@ router.post("/api/logout", (req, res) => {
   res.json({ success: true }); // client just deletes the token
 });
 
-
+//register route
 router.post("/register", authLimiter, async (req, res) => {
   const { email, password, username: providedUsername } = req.body;
 
@@ -116,138 +254,12 @@ router.post("/register", authLimiter, async (req, res) => {
   }
 });
 
-router.get("/auth/google", authLimiter,
-  passport.authenticate("google", { scope: ["profile", "email"] })
-);
-//google callback route
-router.get(
-  "/auth/google/mymovies",
-  passport.authenticate("google", {
-    failureRedirect:
-      "https://localhost:5173/login",
-    session: false,
-  }),
-  async (req, res) => {
-    try {
-      const username = await ensureUsername(
-        req.user.id,
-        req.user.email
-      );
 
-      const role = await getUserRole(req.user.id);
 
-      const token = jwt.sign(
-        {
-          id: req.user.id,
-          email: req.user.email,
-          profile_pic: req.user.profile_pic,
-          username,
-          role,
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-      );
 
-      res.redirect(
-        `https://localhost:5173/home?token=${token}`
-      );
-    } catch (err) {
-      console.error(err);
 
-      res.redirect(
-        "https://localhost:5173/login"
-      );
-    }
-  }
-);
 
-router.get("/auth/facebook",
-  authLimiter,
-  passport.authenticate("facebook", { scope: ["email"] })
-);
 
-router.get("/auth/facebook/callback",
-  authLimiter,
-  passport.authenticate("facebook", {
-    failureRedirect: "https://localhost:5173/login",
-    session: false
-  }),
-  async (req, res) => {
-    try {
-      const username = await ensureUsername(
-        req.user.id,
-        req.user.email
-      );
 
-      const role = await getUserRole(req.user.id);
-
-      const token = jwt.sign(
-        {
-          id: req.user.id,
-          email: req.user.email,
-          profile_pic: req.user.profile_pic,
-          username,
-          role,
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-      );
-
-      res.redirect(
-        `https://localhost:5173/home?token=${token}`
-      );
-    } catch (err) {
-      console.error(err);
-
-      res.redirect(
-        "https://localhost:5173/login"
-      );
-    }
-  }
-
-);
-
-router.get("/auth/github", authLimiter,
-  passport.authenticate("github", { scope: ["user:email"] })
-);
-
-router.get("/auth/github/mymovies",
-  passport.authenticate("github", {
-    failureRedirect: "https://localhost:5173/login",
-    session: false
-  }),
-  async (req, res) => {
-    try {
-      const username = await ensureUsername(
-        req.user.id,
-        req.user.email
-      );
-
-      const role = await getUserRole(req.user.id);
-
-      const token = jwt.sign(
-        {
-          id: req.user.id,
-          email: req.user.email,
-          profile_pic: req.user.profile_pic,
-          username,
-          role,
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-      );
-
-      res.redirect(
-        `https://localhost:5173/home?token=${token}`
-      );
-    } catch (err) {
-      console.error(err);
-
-      res.redirect(
-        "https://localhost:5173/login"
-      );
-    }
-  }
-);
 
 export default router;
