@@ -85,7 +85,7 @@ function SkeletonRow({ count = 6 }) {
 }
 
 // Single movie card
-function AfMovieCard({ movie, rank }) {
+function AfMovieCard({ movie, rank, navigate}) {
   const year = movie.release_date?.slice(0, 4);
   const rating = movie.vote_average?.toFixed(1);
   const country = COUNTRY_NAMES[movie.origin_country?.[0]] || movie.origin_country?.[0] || "";
@@ -154,9 +154,7 @@ function ScrollSection({ title, icon, movies, loading, showRank = false, rightCo
                 No movies found for this selection
               </div>
             )
-            :movies.map((m, i) => (
-  <AfMovieCard key={m.id} movie={m} rank={showRank ? i + 1 : null} navigate={navigate} />
-))
+            :movies.map((m, i) => ( <AfMovieCard key={m.id} movie={m} rank={showRank ? i + 1 : null} navigate={navigate} />))
           }
         </div>
         <button className="af-scroll-btn right" onClick={() => scroll(1)}>
@@ -717,6 +715,7 @@ useEffect(() => {
             movies={topRated}
             loading={loadingTop}
             showRank={true}
+            navigate={navigate}
             rightContent={
               <div className="af-period-toggle">
                 {PERIODS.map(p => (
@@ -781,7 +780,7 @@ useEffect(() => {
               <>
                 <div className="af-latest-grid">
                   {latest.map(m => (
-                    <AfMovieCard key={m.id} movie={m} />
+                    <AfMovieCard key={m.id} movie={m} navigate={navigate} />
                   ))}
                 </div>
 
