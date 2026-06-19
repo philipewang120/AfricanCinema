@@ -21,7 +21,7 @@ function App() {
           <Route path="/login"             element={<LoginPage />} />
           <Route path="/register"          element={<RegisterPage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
-          <Route path="/movie/:id"         element={<MovieDetailPage />} />
+          <Route path="/movie/:tmdbId"         element={<MovieDetailPage />} />
 
           {/* Protected */}
           <Route path="/submit"
