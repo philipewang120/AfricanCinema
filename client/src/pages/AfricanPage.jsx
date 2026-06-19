@@ -123,7 +123,7 @@ function AfMovieCard({ movie, rank, navigate}) {
 }
 
 // Horizontal scroll section
-function ScrollSection({ title, icon, movies, loading, showRank = false, rightContent }) {
+function ScrollSection({ title, icon, movies, loading, showRank = false, rightContent, navigate }) {
   const scrollRef = useRef(null);
 
   function scroll(dir) {
