@@ -86,6 +86,7 @@ function SkeletonRow({ count = 6 }) {
 
 // Single movie card
 function AfMovieCard({ movie, rank, navigate}) {
+  console.log("movie object:", movie); //to be removed after testing
   const year = movie.release_date?.slice(0, 4);
   const rating = movie.vote_average?.toFixed(1);
   const country = COUNTRY_NAMES[movie.origin_country?.[0]] || movie.origin_country?.[0] || "";
