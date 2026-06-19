@@ -143,7 +143,7 @@
 .md-director { font-size: 15px !important; color: #e0e0e8 !important; font-weight: 600 !important; }
 
 .md-cast-row {
-  display: flex; gap: 16px; overflow-x: auto; padding-bottom: 8px;
+  display: flex; flex-direction: row; gap: 16px; overflow-x: auto; padding-bottom: 8px;
   scrollbar-width: none;
 }
 .md-cast-row::-webkit-scrollbar { display: none; }
@@ -158,8 +158,12 @@
   background: var(--raised); margin-bottom: 8px;
   display: flex; align-items: center; justify-content: center;
 }
-.md-cast-name { font-size: 12px; font-weight: 600; color: #e0e0e8; margin-bottom: 2px; }
-.md-cast-character { font-size: 11px; color: var(--muted); }
+.md-cast-name { font-size: 12px; font-weight: 600; color: #e0e0e8; margin-bottom: 2px; white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;}
+.md-cast-character { font-size: 11px; color: var(--muted); white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;}
 
 /* NOT FOUND */
 .md-empty { text-align: center; padding: 100px 24px; }
