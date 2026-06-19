@@ -330,45 +330,50 @@ router.get("/african/movie/:tmdbId", async (req, res) => {
   try {
     const { tmdbId } = req.params;
 
-    const tmdbRes = await fetch(
-      `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${process.env.TMDB_API_KEY}&append_to_response=videos,credits`
+    const tmdbRes = await axios.get(
+      `https://api.themoviedb.org/3/movie/${tmdbId}`,
+      {
+        params: { append_to_response: "videos,credits" },
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${process.env.TMDB_BEARER}`,
+        },
+      }
     );
 
-    if (!tmdbRes.ok) {
-      return res.status(404).json({ message: "Movie not found" });
-    }
-
-    const data = await tmdbRes.json();
+    const data = tmdbRes.data;
 
     const trailer = data.videos?.results?.find(
       v => v.site === "YouTube" && v.type === "Trailer"
     ) || data.videos?.results?.find(v => v.site === "YouTube");
 
     res.json({
-      id: data.id,
-      title: data.title,
+      id:             data.id,
+      title:          data.title,
       original_title: data.original_title,
-      synopsis: data.overview,
-      release_date: data.release_date,
-      runtime: data.runtime,
-      vote_average: data.vote_average,
-      vote_count: data.vote_count,
-      genres: data.genres?.map(g => g.name) || [],
-      poster_path: data.poster_path,
-      backdrop_path: data.backdrop_path,
+      synopsis:       data.overview,
+      release_date:   data.release_date,
+      runtime:        data.runtime,
+      vote_average:   data.vote_average,
+      vote_count:     data.vote_count,
+      genres:         data.genres?.map(g => g.name) || [],
+      poster_path:    data.poster_path,
+      backdrop_path:  data.backdrop_path,
       origin_country: data.production_countries?.map(c => c.iso_3166_1) || [],
       cast: data.credits?.cast?.slice(0, 10).map(c => ({
-        name: c.name,
-        character: c.character,
+        name:         c.name,
+        character:    c.character,
         profile_path: c.profile_path,
       })) || [],
-      director: data.credits?.crew?.find(c => c.job === "Director")?.name || null,
+      director:   data.credits?.crew?.find(c => c.job === "Director")?.name || null,
       trailerKey: trailer?.key || null,
     });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to load movie details" });
+    console.error(err.response?.data || err.message);
+    res.status(err.response?.status === 404 ? 404 : 500).json({
+      message: "Failed to load movie details",
+    });
   }
 });
 export default router;
