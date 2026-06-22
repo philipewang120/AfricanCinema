@@ -218,13 +218,6 @@
     ]
   },
   {
-    "name": "Offie Darlington",
-    "country": "NG",
-    "tmdb_id": null,
-    "profile_path": null,
-    "tmdb_known_for": []
-  },
-  {
     "name": "Toka McBaror",
     "country": "NG",
     "tmdb_id": 2053285,
@@ -382,11 +375,14 @@
     ]
   },
   {
-    "name": "Thomas Y. Tchoumbou",
+    "name": "Kang Quintus",
     "country": "CM",
-    "tmdb_id": null,
-    "profile_path": null,
-    "tmdb_known_for": []
+    "tmdb_id": 2930100,
+    "profile_path": "/2Zj6uW21cFCZKKaEyCZTfhwyu8F.jpg",
+    "tmdb_known_for": [
+      "The Fisherman's Diary",
+      "Nganù"
+    ]
   },
   {
     "name": "Shirley Frimpong-Manso",
@@ -960,13 +956,6 @@
       "The Season of Men",
       "Nadia and Sarra"
     ]
-  },
-  {
-    "name": "Tewfik Saleh",
-    "country": "EG",
-    "tmdb_id": null,
-    "profile_path": null,
-    "tmdb_known_for": []
   },
   {
     "name": "Mohamed Khan",

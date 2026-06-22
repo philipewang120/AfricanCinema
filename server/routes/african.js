@@ -330,6 +330,36 @@ router.get("/african/movie/:tmdbId", async (req, res) => {
   try {
     const { tmdbId } = req.params;
 
+    // Try your own database first — instant, no external dependency
+    const dbResult = await db.query(
+      `SELECT * FROM african_movies WHERE tmdb_id = $1`,
+      [parseInt(tmdbId)]
+    );
+
+    if (dbResult.rows.length > 0) {
+      const movie = dbResult.rows[0];
+      return res.json({
+        id:                movie.tmdb_id,
+        title:             movie.title,
+        original_title:    movie.original_title,
+        synopsis:          movie.synopsis,
+        release_date:      movie.release_date,
+        runtime:           movie.runtime,
+        vote_average:      movie.vote_average,
+        vote_count:        movie.vote_count,
+        genres:            movie.genres || [],
+        poster_path:       movie.poster_path,
+        backdrop_path:     movie.backdrop_path,
+        origin_country:    movie.origin_country ? [movie.origin_country] : [],
+        original_language: movie.original_language,
+        cast:              (movie.cast_list || []).map(name => ({ name, character: "" })),
+        director:          movie.director,
+        trailerKey:        movie.trailer_key,
+      });
+    }
+
+    // Fallback — film not in DB yet, fetch live from TMDB
+    // (handles edge cases like films from search results not yet batch-processed)
     const tmdbRes = await axios.get(
       `https://api.themoviedb.org/3/movie/${tmdbId}`,
       {
@@ -342,12 +372,11 @@ router.get("/african/movie/:tmdbId", async (req, res) => {
     );
 
     const data = tmdbRes.data;
-
     const trailer = data.videos?.results?.find(
       v => v.site === "YouTube" && v.type === "Trailer"
     ) || data.videos?.results?.find(v => v.site === "YouTube");
 
-    res.json({
+    return res.json({
       id:             data.id,
       title:          data.title,
       original_title: data.original_title,
@@ -360,10 +389,9 @@ router.get("/african/movie/:tmdbId", async (req, res) => {
       poster_path:    data.poster_path,
       backdrop_path:  data.backdrop_path,
       origin_country: data.production_countries?.map(c => c.iso_3166_1) || [],
+      original_language: data.original_language,
       cast: data.credits?.cast?.slice(0, 10).map(c => ({
-        name:         c.name,
-        character:    c.character,
-        profile_path: c.profile_path,
+        name: c.name, character: c.character, profile_path: c.profile_path,
       })) || [],
       director:   data.credits?.crew?.find(c => c.job === "Director")?.name || null,
       trailerKey: trailer?.key || null,
@@ -371,9 +399,7 @@ router.get("/african/movie/:tmdbId", async (req, res) => {
 
   } catch (err) {
     console.error(err.response?.data || err.message);
-    res.status(err.response?.status === 404 ? 404 : 500).json({
-      message: "Failed to load movie details",
-    });
+    res.status(404).json({ message: "Movie not found" });
   }
 });
 export default router;
