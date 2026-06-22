@@ -103,7 +103,9 @@ function SkeletonRow({ count = 6 }) {
 // Single movie card
 function AfMovieCard({ movie, rank, navigate}) {
   const year = movie.release_date?.slice(0, 4);
-  const rating = movie.vote_average?.toFixed(1);
+  const rating = Number.isFinite(Number(movie.vote_average))
+  ? Number(movie.vote_average).toFixed(1)
+  : "N/A";
   const country = COUNTRY_NAMES[movie.origin_country?.[0]] || movie.origin_country?.[0] || "";
 
  return (
