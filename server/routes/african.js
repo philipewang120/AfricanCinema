@@ -1,4 +1,4 @@
-
+//server/routes/african.js --- main API routes for African cinema data, including top-rated, latest releases, featured film, search, and community submissions.
 import express from "express";
 import axios from "axios";
 

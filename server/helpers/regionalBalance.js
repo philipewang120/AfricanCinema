@@ -1,31 +1,24 @@
 
 
-// Percentage allocation for "All Africa" tab — must sum to 100
 const REGIONAL_QUOTAS = {
-  NG: 0.35,           // Nigeria — biggest market
-  CM: 0.20,           // Cameroon
-  // Remaining 45% split equally across all other represented regions
-};
-
-// Country → region grouping, so individual country codes roll up correctly
-const REGION_GROUPS = {
-  NG: "NG",
-  CM: "CM",
-  ZA: "ZA",
-  GH: "GH",
-  EG: "EG", DZ: "EG", MA: "EG", TN: "EG", // North Africa bucket, tag pending your Arab-tab rename
-  SN: "FR", ML: "FR", CI: "FR", GN: "FR", TD: "FR", CD: "FR", NE: "FR", MR: "FR", // Francophone bucket
+  NG: 0.35,
+  CM: 0.20,
 };
 
 function getRegion(countryCode) {
+  const REGION_GROUPS = {
+    NG: "NG", CM: "CM", ZA: "ZA", GH: "GH",
+    EG: "ARAB", DZ: "ARAB", MA: "ARAB", TN: "ARAB",
+    SN: "FR", ML: "FR", CI: "FR", GN: "FR",
+    TD: "FR", CD: "FR", NE: "FR", MR: "FR",
+  };
   return REGION_GROUPS[countryCode] || "OTHER";
 }
 
-export function applyRegionalBalance(rankedCandidates, targetCount = 60) {
-  // Group candidates by region, each already sorted by confidence/rating internally
+export function applyRegionalBalance(rankedCandidates, targetCount) {
   const byRegion = {};
   for (const candidate of rankedCandidates) {
-    const region = getRegion(candidate.suspected_country);
+    const region = getRegion(candidate.tab_region || candidate.suspected_country);
     if (!byRegion[region]) byRegion[region] = [];
     byRegion[region].push(candidate);
   }
@@ -34,8 +27,9 @@ export function applyRegionalBalance(rankedCandidates, targetCount = 60) {
   const fixedRegions = Object.keys(REGIONAL_QUOTAS);
   const remainingRegions = allRegions.filter(r => !fixedRegions.includes(r));
 
+  const fixedTotal = Object.values(REGIONAL_QUOTAS).reduce((a, b) => a + b, 0);
   const remainingQuotaShare = remainingRegions.length > 0
-    ? (1 - Object.values(REGIONAL_QUOTAS).reduce((a, b) => a + b, 0)) / remainingRegions.length
+    ? (1 - fixedTotal) / remainingRegions.length
     : 0;
 
   const finalQuotas = { ...REGIONAL_QUOTAS };
@@ -45,13 +39,10 @@ export function applyRegionalBalance(rankedCandidates, targetCount = 60) {
   for (const region of allRegions) {
     const quota = finalQuotas[region] || 0;
     const slotCount = Math.round(targetCount * quota);
-    const regionCandidates = byRegion[region] || [];
-    result.push(...regionCandidates.slice(0, slotCount));
+    result.push(...(byRegion[region] || []).slice(0, slotCount));
   }
 
-  // If quotas didn't fill targetCount exactly (rounding, or a region
-  // had fewer candidates than its quota), backfill from the overall
-  // ranked list, skipping anything already included
+  // Backfill if rounding left us short of targetCount
   if (result.length < targetCount) {
     const includedIds = new Set(result.map(c => c.tmdb_id));
     for (const candidate of rankedCandidates) {
