@@ -113,6 +113,7 @@ router.get("/african/top-rated", async (req, res) => {
 
 // ── LATEST AFRICAN RELEASES (last 30 days) ─────────────────
 router.get("/african/latest", async (req, res) => {
+  console.log("➡️ /african/latest called");//troubleshooting query performance
   try {
     const { country = "all", page = 1 } = req.query;
 
@@ -159,6 +160,8 @@ router.get("/african/latest", async (req, res) => {
     values.push(limit);
     values.push(offset);
 
+    console.time("latest-query");//troubleshooting query performance
+
     const movies = await pool.query(
       `
       SELECT
@@ -190,6 +193,10 @@ router.get("/african/latest", async (req, res) => {
       `,
       values
     );
+    const result = await pool.query(sql, params);
+
+  console.timeEnd("latest-query");
+  console.log("Rows:", result.rows.length);
 
     res.json({
       page: Number(page),
