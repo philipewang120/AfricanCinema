@@ -84,9 +84,9 @@ router.get("/african/top-rated", async (req, res) => {
       FROM african_movies
       ${whereClause}
       ORDER BY
+        confidence_score DESC,
         vote_average DESC,
         vote_count DESC,
-        confidence_score DESC,
         release_date DESC
       LIMIT $${values.length - 1}
       OFFSET $${values.length}
@@ -183,7 +183,7 @@ router.get("/african/latest", async (req, res) => {
       ORDER BY
         release_date DESC,
         vote_average DESC,
-        popularity DESC
+        confidence_score DESC
       LIMIT $${values.length - 1}
       OFFSET $${values.length}
       `,
