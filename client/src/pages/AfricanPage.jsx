@@ -7,7 +7,7 @@ import {
 import {
   Movie, Star, TrendingUp, NewReleases, Public, Person, Settings,
   ArrowBack, Add, ChevronLeft, ChevronRight, Refresh,
-  Search as SearchIcon, Close as CloseIcon, Logout,
+  Search as SearchIcon, Close as CloseIcon, Logout, PlayArrow,
 } from "@mui/icons-material";
 import "./AfricanPage.css";
 
@@ -24,14 +24,14 @@ function useFonts() {
 
 // Country tab config
 const TABS = [
-  { key: "all",  label: "All Africa" },
-  { key: "NG",   label: " Nollywood" },
-  { key: "CM",   label: "Cameroon" },
-  { key: "GH",   label: "Ghana" },
-  { key: "ZA",   label: "South Africa" },
-  { key: "ARAB", label: "Arab" },
-  { key: "FR",   label: "Francophonie" },
-];;
+  { key: "all",  label: "🌍 All Africa"    },
+  { key: "NG",   label: "🇳🇬 Nollywood"    },
+  { key: "CM",   label: "🇨🇲 Cameroon"     },
+  { key: "ZA",   label: "🇿🇦 South Africa"  },
+  { key: "GH",   label: "🇬🇭 Ghana"        },
+  { key: "ARAB", label: "🌙 Arab Africa"   },
+  { key: "FR",   label: "🎭 Francophonie"  },
+];
 
 const PERIODS = [
   { key: "month", label: "This Month" },
@@ -40,31 +40,24 @@ const PERIODS = [
 ];
 
 const COUNTRY_NAMES = {
-  NG: "Nigeria",
-  CM: "Cameroon",
-  GH: "Ghana",
-  ZA: "South Africa",
-
-  EG: "Egypt",
-  MA: "Morocco",
-  DZ: "Algeria",
-  TN: "Tunisia",
-  LY: "Libya",
-  SD: "Sudan",
-
-  SN: "Senegal",
-  CI: "Côte d'Ivoire",
-  BF: "Burkina Faso",
-  ML: "Mali",
-  NE: "Niger",
-  BJ: "Benin",
-  TG: "Togo",
-  GN: "Guinea",
-  CD: "DR Congo",
-  CG: "Republic of the Congo",
-  GA: "Gabon",
-  TD: "Chad",
-  CF: "Central African Republic",
+  NG:   "Nigeria",
+  CM:   "Cameroon",
+  ZA:   "South Africa",
+  GH:   "Ghana",
+  EG:   "Egypt",
+  DZ:   "Algeria",
+  MA:   "Morocco",
+  TN:   "Tunisia",
+  SN:   "Senegal",
+  ML:   "Mali",
+  CI:   "Côte d'Ivoire",
+  GN:   "Guinea",
+  TD:   "Chad",
+  CD:   "DR Congo",
+  NE:   "Niger",
+  MR:   "Mauritania",
+  ARAB: "Arab Africa",
+  FR:   "Francophonie",
 };
 
 // Toast system
@@ -395,12 +388,12 @@ useEffect(() => {
 }
 
   // Load featured once
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/african/featured`)
-      .then(r => r.json())
-      .then(data => setFeatured(data))
-      .catch(() => setFeatured(null));
-  }, []);
+useEffect(() => {
+  fetch(`${import.meta.env.VITE_API_URL}/african/featured`)
+    .then(r => r.json())
+    .then(data => setFeatured(data))
+    .catch(() => setFeatured(null));
+}, []);
 
   // Load top rated when tab or period changes
   useEffect(() => {
@@ -414,42 +407,41 @@ useEffect(() => {
     loadLatest(1, false);
   }, [activeTab]);
 
-  async function loadTopRated() {
-    setLoadingTop(true);
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/african/top-rated?country=${activeTab}&period=${period}`
-      );
-      const data = await res.json();
-      setTopRated(data.movies || []);
-    } catch { setTopRated([]); }
-    finally { setLoadingTop(false); }
-  }
+// load top rated movies from database
+async function loadTopRated() {
+  setLoadingTop(true);
+  try {
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/african/top-rated?tab=${activeTab}&period=${period}`
+    );
+    const data = await res.json();
+    setTopRated(data.movies || []);
+  } catch { setTopRated([]); }
+  finally { setLoadingTop(false); }
+}
 
   async function loadLatest(page = 1, append = false) {
-    if (page === 1) setLoadingLatest(true);
-    else setLoadingMore(true);
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/african/latest?country=${activeTab}&page=${page}`
-      );
-      const data = await res.json();
-      const movies = data.movies || [];
-      if (append) {
-        setLatest(prev => [...prev, ...movies]);
-      } else {
-        setLatest(movies);
-      }
-      setHasMoreLatest(page < (data.total_pages || 1));
-    } catch {
-      if (!append) setLatest([]);
+  if (page === 1) setLoadingLatest(true);
+  else setLoadingMore(true);
+  try {
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/african/latest?tab=${activeTab}&page=${page}`
+    );
+    const data = await res.json();
+    const movies = data.movies || [];
+    if (append) {
+      setLatest(prev => [...prev, ...movies]);
+    } else {
+      setLatest(movies);
     }
-    finally {
-      setLoadingLatest(false);
-      setLoadingMore(false);
-    }
+    setHasMoreLatest(page < (data.total_pages || 1));
+  } catch {
+    if (!append) setLatest([]);
+  } finally {
+    setLoadingLatest(false);
+    setLoadingMore(false);
   }
-
+}
   function handleLoadMore() {
     const next = latestPage + 1;
     setLatestPage(next);
@@ -669,51 +661,61 @@ useEffect(() => {
   </Toolbar>
 </nav>
 
+    
         {/* ── HERO ── */}
-        <div className="af-hero">
-          {featured?.backdrop_path ? (
-            <div
-              className="af-hero-bg"
-              style={{ backgroundImage: `url(https://image.tmdb.org/t/p/original${featured.backdrop_path})` }}
-            />
-          ) : (
-            <div className="af-hero-fallback">
-              <Public sx={{ fontSize: 80, color: "rgba(232,197,71,0.1)" }} />
-            </div>
+<div className="af-hero">
+  {featured?.backdrop_path ? (
+    <div
+      className="af-hero-bg"
+      style={{ backgroundImage: `url(https://image.tmdb.org/t/p/original${featured.backdrop_path})` }}
+    />
+  ) : (
+    <div className="af-hero-fallback">
+      <Public sx={{ fontSize: 80, color: "rgba(232,197,71,0.1)" }} />
+    </div>
+  )}
+  <div className="af-hero-content">
+    <div className="af-hero-eyebrow">FEATURED FILM</div>
+    {featured ? (
+      <>
+        <Typography className="af-hero-title">{featured.title}</Typography>
+        <div className="af-hero-meta">
+          {featured.vote_average > 0 && (
+            <span className="af-hero-chip af-hero-chip-rating">
+              ⭐ {parseFloat(featured.vote_average).toFixed(1)} TMDB
+            </span>
           )}
-          <div className="af-hero-content">
-            <div className="af-hero-eyebrow">FEATURED FILM</div>
-            {featured ? (
-              <>
-                <Typography className="af-hero-title">{featured.title}</Typography>
-                <div className="af-hero-meta">
-                  {featured.vote_average && (
-                    <span className="af-hero-chip af-hero-chip-rating">
-                      ⭐ {featured.vote_average?.toFixed(1)} TMDB
-                    </span>
-                  )}
-                  {featuredCountry && (
-                    <span className="af-hero-chip af-hero-chip-country">
-                      {COUNTRY_NAMES[featuredCountry] || featuredCountry}
-                    </span>
-                  )}
-                  {featured.release_date && (
-                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
-                      {featured.release_date.slice(0, 4)}
-                    </span>
-                  )}
-                </div>
-              </>
-            ) : (
-              <>
-                <Typography className="af-hero-title">AFRICAN CINEMA</Typography>
-                <Typography sx={{ fontSize: 15, color: "rgba(255,255,255,0.5)", mb: 2 }}>
-                  Discover the best of African film
-                </Typography>
-              </>
-            )}
-          </div>
+          {featured.tab_region && (
+            <span className="af-hero-chip af-hero-chip-country">
+              {COUNTRY_NAMES[featured.tab_region] || featured.tab_region}
+            </span>
+          )}
+          {featured.release_date && (
+            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
+              {featured.release_date.slice(0, 4)}
+            </span>
+          )}
         </div>
+        {featured.trailer_key && (
+          <Button
+            className="af-hero-play-btn"
+            startIcon={<PlayArrow />}
+            onClick={() => window.open(`https://www.youtube.com/watch?v=${featured.trailer_key}`, "_blank")}
+          >
+            Watch Trailer
+          </Button>
+        )}
+      </>
+    ) : (
+      <>
+        <Typography className="af-hero-title">AFRICAN CINEMA</Typography>
+        <Typography sx={{ fontSize: 15, color: "rgba(255,255,255,0.5)", mb: 2 }}>
+          Discover the best of African film
+        </Typography>
+      </>
+    )}
+  </div>
+</div>
 
         {/* ── BODY ── */}
         <div className="af-body">

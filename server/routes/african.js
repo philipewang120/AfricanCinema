@@ -13,256 +13,158 @@ import pool from "../db.js";
 
 const router = express.Router();
 
+function getTabRegions(tab) {
+  const TAB_MAP = {
+    all:  null, // no filter — all regions
+    NG:   ["NG"],
+    CM:   ["CM"],
+    GH:   ["GH"],
+    ZA:   ["ZA"],
+    ARAB: ["EG", "DZ", "MA", "TN"],
+    FR:   ["SN", "ML", "CI", "GN", "TD", "CD", "NE", "MR"],
+  };
+  return TAB_MAP[tab] ?? null;
+}
+// ── TOP-RATED AFRICAN MOVIES ───────────────────────────────
 router.get("/african/top-rated", async (req, res) => {
   try {
-    const { country = "all", period = "year", page = 1 } = req.query;
+    const { tab = "all", period = "year" } = req.query;
+    const regions = getTabRegions(tab);
 
-    const limit = 20;
-    const offset = (Number(page) - 1) * limit;
-
-    const where = [`status = 'published'`];
-    const values = [];
-
-    // --------------------------
-    // Region filter
-    // --------------------------
-
-    if (country !== "all") {
-      values.push(country.toUpperCase());
-      where.push(`tab_region = $${values.length}`);
-    }
-
-    // --------------------------
-    // Period filter
-    // --------------------------
-
+    // Build date filter for period
+    let dateFilter = "";
+    const now = new Date();
     if (period === "month") {
-      values.push(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+        .toISOString().split("T")[0];
+      dateFilter = `AND release_date >= '${firstDay}'`;
+    } else if (period === "year") {
+      dateFilter = `AND release_year = ${now.getFullYear()}`;
+    }
+    // "all" period — no date filter
 
-      where.push(`release_date >= $${values.length}`);
+    // Build region filter
+    let regionFilter = "";
+    const regionParams = [];
+    if (regions) {
+      const placeholders = regions.map((_, i) => `$${i + 1}`).join(", ");
+      regionFilter = `AND tab_region IN (${placeholders})`;
+      regionParams.push(...regions);
     }
 
-    if (period === "year") {
-      values.push(`${new Date().getFullYear()}-01-01`);
-
-      where.push(`release_date >= $${values.length}`);
-    }
-
-    const whereClause = `WHERE ${where.join(" AND ")}`;
-
-    // Count
-    const countQuery = `
-      SELECT COUNT(*)::int AS total
-      FROM african_movies
-      ${whereClause}
-    `;
-
-    const countResult = await pool.query(countQuery, values);
-
-    // Movies
-    values.push(limit);
-    values.push(offset);
-
-    const movieQuery = `
+    const query = `
       SELECT
-        tmdb_id,
-        title,
-        original_title,
-        synopsis,
-        release_date,
-        release_year,
-        runtime,
-        vote_average,
-        vote_count,
-        poster_path,
-        backdrop_path,
-        origin_country,
-        original_language,
-        genres,
-        director,
-        cast_list,
-        trailer_key
+        id, tmdb_id, title, release_date, release_year,
+        poster_path, backdrop_path, vote_average, vote_count,
+        genres, director, origin_country, tab_region,
+        confidence_score, trailer_key
       FROM african_movies
-      ${whereClause}
-      ORDER BY
-        confidence_score DESC,
-        vote_average DESC,
-        vote_count DESC,
-        release_date DESC
-      LIMIT $${values.length - 1}
-      OFFSET $${values.length}
+      WHERE status = 'approved'
+        AND vote_count > 0
+        ${dateFilter}
+        ${regionFilter}
+      ORDER BY confidence_score DESC, vote_average DESC
+      LIMIT ${tab === "NG" ? 60 : 25}
     `;
 
-    const movies = await pool.query(movieQuery, values);
+    const result = await db.query(query, regionParams);
 
-    res.json({
-      page: Number(page),
-      total_pages: Math.ceil(countResult.rows[0].total / limit),
-      total_results: countResult.rows[0].total,
-      movies: movies.rows,
-    });
-
+    res.json({ movies: result.rows, total: result.rows.length });
   } catch (err) {
     console.error(err);
-    res.status(500).json({
-      message: "Failed to fetch top rated",
-    });
+    res.status(500).json({ message: "Failed to fetch top rated" });
   }
 });
 
 
-// ── LATEST AFRICAN RELEASES (last 30 days) ─────────────────
+// ── LATEST AFRICAN RELEASES last 18 months ───────────────────────────────
 router.get("/african/latest", async (req, res) => {
-  console.log("➡️ /african/latest called");//troubleshooting query performance
   try {
-    const { country = "all", page = 1 } = req.query;
-
+    const { tab = "all", page = 1 } = req.query;
+    const regions = getTabRegions(tab);
     const limit = 20;
-    const offset = (Number(page) - 1) * limit;
+    const offset = (parseInt(page) - 1) * limit;
 
-    const where = [`status = 'published'`];
-    const values = [];
+    // Latest = released within last 18 months
+    const cutoff = new Date();
+    cutoff.setMonth(cutoff.getMonth() - 18);
+    const cutoffStr = cutoff.toISOString().split("T")[0];
 
-    // --------------------------
-    // Region filter
-    // --------------------------
-    if (country !== "all") {
-      values.push(country.toUpperCase());
-      where.push(`tab_region = $${values.length}`);
+    let regionFilter = "";
+    const params = [cutoffStr];
+
+    if (regions) {
+      const placeholders = regions.map((_, i) => `$${i + 2}`).join(", ");
+      regionFilter = `AND tab_region IN (${placeholders})`;
+      params.push(...regions);
     }
 
-    // --------------------------
-    // Last 6 months
-    // --------------------------
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 8);
+    const offsetParam = `$${params.length + 1}`;
+    const limitParam  = `$${params.length + 2}`;
+    params.push(offset, limit);
 
-    values.push(sixMonthsAgo);
-    where.push(`release_date >= $${values.length}`);
+    const countQuery = `
+      SELECT COUNT(*) FROM african_movies
+      WHERE status = 'approved'
+        AND release_date >= $1
+        ${regionFilter}
+    `;
+    const countResult = await db.query(countQuery, params.slice(0, params.length - 2));
+    const total = parseInt(countResult.rows[0].count);
 
-    const whereClause = `WHERE ${where.join(" AND ")}`;
-
-    // --------------------------
-    // Count
-    // --------------------------
-    const countResult = await pool.query(
-      `
-      SELECT COUNT(*)::int AS total
-      FROM african_movies
-      ${whereClause}
-      `,
-      values
-    );
-
-    // --------------------------
-    // Movies
-    // --------------------------
-    values.push(limit);
-    values.push(offset);
-
-    console.time("latest-query");//troubleshooting query performance
-
-    const movies = await pool.query(
-      `
+    const query = `
       SELECT
-        tmdb_id,
-        title,
-        original_title,
-        synopsis,
-        release_date,
-        release_year,
-        runtime,
-        vote_average,
-        vote_count,
-        poster_path,
-        backdrop_path,
-        origin_country,
-        original_language,
-        genres,
-        director,
-        cast_list,
-        trailer_key
+        id, tmdb_id, title, release_date, release_year,
+        poster_path, backdrop_path, vote_average, vote_count,
+        genres, director, origin_country, tab_region,
+        confidence_score, trailer_key
       FROM african_movies
-      ${whereClause}
-      ORDER BY
-        release_date DESC,
-        vote_average DESC,
-        confidence_score DESC
-      LIMIT $${values.length - 1}
-      OFFSET $${values.length}
-      `,
-      values
-    );
-    const result = await pool.query(sql, params);
+      WHERE status = 'approved'
+        AND release_date >= $1
+        ${regionFilter}
+      ORDER BY release_date DESC
+      LIMIT ${limitParam} OFFSET ${offsetParam}
+    `;
 
-  console.timeEnd("latest-query");
-  console.log("Rows:", result.rows.length);
+    const result = await db.query(query, params);
 
     res.json({
-      page: Number(page),
-      total_pages: Math.ceil(countResult.rows[0].total / limit),
-      total_results: countResult.rows[0].total,
-      movies: movies.rows,
+      movies:      result.rows,
+      total,
+      total_pages: Math.ceil(total / limit),
+      page:        parseInt(page),
     });
-
   } catch (err) {
     console.error(err);
-    res.status(500).json({
-      message: "Failed to fetch latest",
-    });
+    res.status(500).json({ message: "Failed to fetch latest releases" });
   }
 });
 
 // ── FEATURED AFRICAN FILM (hero) ───────────────────────────
 router.get("/african/featured", async (req, res) => {
   try {
+    const result = await db.query(
+      `SELECT
+        id, tmdb_id, title, synopsis, release_date, release_year,
+        poster_path, backdrop_path, trailer_key, vote_average, vote_count,
+        genres, director, origin_country, tab_region, confidence_score
+       FROM african_movies
+       WHERE status      = 'approved'
+         AND backdrop_path IS NOT NULL
+         AND trailer_key   IS NOT NULL
+         AND confidence_score >= 4
+       ORDER BY RANDOM()
+       LIMIT 1`
+    );
 
-    const result = await pool.query(`
-      SELECT
-        tmdb_id,
-        title,
-        original_title,
-        synopsis,
-        release_date,
-        release_year,
-        runtime,
-        vote_average,
-        vote_count,
-        poster_path,
-        backdrop_path,
-        origin_country,
-        original_language,
-        genres,
-        director,
-        cast_list,
-        trailer_key
-      FROM african_movies
-      WHERE
-        status = 'published'
-        AND backdrop_path IS NOT NULL
-        AND backdrop_path <> ''
-        AND release_date >= CURRENT_DATE - INTERVAL '2 years'
-        AND tab_region IN (
-          'NG',
-          'ZA',
-          'CM',
-          'GH',
-          'ARAB'
-        )
-      ORDER BY
-        vote_average DESC,
-        vote_count DESC,
-        confidence_score DESC
-      LIMIT 1
-    `);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "No featured film available" });
+    }
 
-    res.json(result.rows[0] || null);
-
+    res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
-    res.status(500).json({
-      message: "Failed to fetch featured",
-    });
+    res.status(500).json({ message: "Failed to fetch featured film" });
   }
 });
 // ── AFRICAN MOVIE SEARCH ─────────────────────────────────  

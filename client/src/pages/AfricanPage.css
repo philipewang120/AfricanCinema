@@ -513,3 +513,19 @@
   color: #e0e0e8 !important;
   border-color: rgba(255,255,255,0.18) !important;
 }
+.af-hero-play-btn {
+  background: var(--accent) !important;
+  color: var(--ink) !important;
+  border-radius: 10px !important;
+  font-family: var(--font-body) !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  text-transform: none !important;
+  padding: 9px 24px !important;
+  transition: all var(--transition) !important;
+  margin-top: 8px !important;
+}
+.af-hero-play-btn:hover {
+  background: #f0d050 !important;
+  transform: scale(1.03);
+}
