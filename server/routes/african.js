@@ -484,7 +484,7 @@ router.get("/african/movie/:tmdbId", async (req, res) => {
 
     return res.json({
       id:             data.id,
-      tmdbId:         data.tmdb-id,
+      tmdbId:         data.tmdb_id,
       title:          data.title,
       original_title: data.original_title,
       synopsis:       data.overview,
