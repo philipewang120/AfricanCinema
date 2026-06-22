@@ -29,11 +29,11 @@ console.log(`Merged candidates: ${merged.length}`);
 const { verified, rejected } = await verifyAllCandidates(merged);
 console.log(`Verified: ${verified.length}, Rejected: ${rejected.length}`);
 
-console.log("\n=== Phase B: Enrich ===");
+console.log("\n=== Phase C: Enrich ===");
 const { enriched, failed } = await enrichAllCandidates(verified);
 console.log(`Enriched: ${enriched.length}, Failed: ${failed.length}`);
 
-console.log("\n=== Phase B: Regional balance ===");
+console.log("\n=== Phase D: Regional balance ===");
 const tabs = buildAllTabs(enriched);
 console.log(`All Africa — Top Rated: ${tabs.ALL.topRated.length}, Latest: ${tabs.ALL.latest.length}`);
 console.log(`NG — Top Rated: ${tabs.NG.topRated.length}, Latest: ${tabs.NG.latest.length}`);
@@ -43,7 +43,7 @@ console.log(`ZA — Top Rated: ${tabs.ZA.topRated.length}, Latest: ${tabs.ZA.lat
 console.log(`ARAB — Top Rated: ${tabs.ARAB.topRated.length}, Latest: ${tabs.ARAB.latest.length}`);
 console.log(`FR — Top Rated: ${tabs.FR.topRated.length}, Latest: ${tabs.FR.latest.length}`);
 
-console.log("\n=== Phase C: Publish to database ===");
+console.log("\n=== Phase E: Publish to database ===");
 await publishToDatabase(enriched);
 
 console.log("\n=== Pipeline complete ===");

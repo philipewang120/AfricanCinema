@@ -15,33 +15,97 @@ const router = express.Router();
 router.get("/african/top-rated", async (req, res) => {
   try {
     const { country = "all", period = "year", page = 1 } = req.query;
-    const countryCodes = getCountryCodes(country);
-    const now = new Date();
 
-    const tmdbParams = {
-      language:         "en-US",
-      sort_by:          "vote_average.desc",
-      "vote_count.gte": 1,
-      include_adult:    false,
-      page,
-    };
+    const limit = 20;
+    const offset = (Number(page) - 1) * limit;
+
+    const where = [`status = 'published'`];
+    const values = [];
+
+    // --------------------------
+    // Region filter
+    // --------------------------
+
+    if (country !== "all") {
+      values.push(country.toUpperCase());
+      where.push(`tab_region = $${values.length}`);
+    }
+
+    // --------------------------
+    // Period filter
+    // --------------------------
 
     if (period === "month") {
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-      tmdbParams["primary_release_date.gte"] = firstDay.toISOString().split("T")[0];
-      tmdbParams["primary_release_date.lte"] = now.toISOString().split("T")[0];
-    } else if (period === "year") {
-      tmdbParams["primary_release_date.gte"] = `${now.getFullYear()}-01-01`;
-      tmdbParams["primary_release_date.lte"] = now.toISOString().split("T")[0];
-    }
-    // "all" period — no date filter
+      values.push(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
 
-    const data = await fetchAfricanMovies(tmdbParams, countryCodes);
-    res.json(data);
+      where.push(`release_date >= $${values.length}`);
+    }
+
+    if (period === "year") {
+      values.push(`${new Date().getFullYear()}-01-01`);
+
+      where.push(`release_date >= $${values.length}`);
+    }
+
+    const whereClause = `WHERE ${where.join(" AND ")}`;
+
+    // Count
+    const countQuery = `
+      SELECT COUNT(*)::int AS total
+      FROM african_movies
+      ${whereClause}
+    `;
+
+    const countResult = await db.query(countQuery, values);
+
+    // Movies
+    values.push(limit);
+    values.push(offset);
+
+    const movieQuery = `
+      SELECT
+        tmdb_id,
+        title,
+        original_title,
+        synopsis,
+        release_date,
+        release_year,
+        runtime,
+        vote_average,
+        vote_count,
+        poster_path,
+        backdrop_path,
+        origin_country,
+        original_language,
+        genres,
+        director,
+        cast_list,
+        trailer_key
+      FROM african_movies
+      ${whereClause}
+      ORDER BY
+        vote_average DESC,
+        vote_count DESC,
+        confidence_score DESC,
+        release_date DESC
+      LIMIT $${values.length - 1}
+      OFFSET $${values.length}
+    `;
+
+    const movies = await db.query(movieQuery, values);
+
+    res.json({
+      page: Number(page),
+      total_pages: Math.ceil(countResult.rows[0].total / limit),
+      total_results: countResult.rows[0].total,
+      movies: movies.rows,
+    });
 
   } catch (err) {
-    console.error(err.response?.data || err.message);
-    res.status(500).json({ message: "Failed to fetch top rated" });
+    console.error(err);
+    res.status(500).json({
+      message: "Failed to fetch top rated",
+    });
   }
 });
 
@@ -50,96 +114,228 @@ router.get("/african/top-rated", async (req, res) => {
 router.get("/african/latest", async (req, res) => {
   try {
     const { country = "all", page = 1 } = req.query;
-    const countryCodes = getCountryCodes(country);
-    const now = new Date();
-    const sixMonthsAgo = new Date(new Date().setMonth(new Date().getMonth() - 6));
 
-    const tmdbParams = {
-      language:                   "en-US",
-      sort_by:                    "release_date.desc",
-      "vote_count.gte":           1,
-      "primary_release_date.gte": sixMonthsAgo.toISOString().split("T")[0],
-      "primary_release_date.lte": now.toISOString().split("T")[0],
-      include_adult:              false,
-      page,
-    };
+    const limit = 20;
+    const offset = (Number(page) - 1) * limit;
 
-    const data = await fetchAfricanMovies(tmdbParams, countryCodes);
-    res.json(data);
+    const where = [`status = 'published'`];
+    const values = [];
+
+    // --------------------------
+    // Region filter
+    // --------------------------
+    if (country !== "all") {
+      values.push(country.toUpperCase());
+      where.push(`tab_region = $${values.length}`);
+    }
+
+    // --------------------------
+    // Last 6 months
+    // --------------------------
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 8);
+
+    values.push(sixMonthsAgo);
+    where.push(`release_date >= $${values.length}`);
+
+    const whereClause = `WHERE ${where.join(" AND ")}`;
+
+    // --------------------------
+    // Count
+    // --------------------------
+    const countResult = await db.query(
+      `
+      SELECT COUNT(*)::int AS total
+      FROM african_movies
+      ${whereClause}
+      `,
+      values
+    );
+
+    // --------------------------
+    // Movies
+    // --------------------------
+    values.push(limit);
+    values.push(offset);
+
+    const movies = await db.query(
+      `
+      SELECT
+        tmdb_id,
+        title,
+        original_title,
+        synopsis,
+        release_date,
+        release_year,
+        runtime,
+        vote_average,
+        vote_count,
+        poster_path,
+        backdrop_path,
+        origin_country,
+        original_language,
+        genres,
+        director,
+        cast_list,
+        trailer_key
+      FROM african_movies
+      ${whereClause}
+      ORDER BY
+        release_date DESC,
+        vote_average DESC,
+        popularity DESC
+      LIMIT $${values.length - 1}
+      OFFSET $${values.length}
+      `,
+      values
+    );
+
+    res.json({
+      page: Number(page),
+      total_pages: Math.ceil(countResult.rows[0].total / limit),
+      total_results: countResult.rows[0].total,
+      movies: movies.rows,
+    });
 
   } catch (err) {
-    console.error(err.response?.data || err.message);
-    res.status(500).json({ message: "Failed to fetch latest" });
+    console.error(err);
+    res.status(500).json({
+      message: "Failed to fetch latest",
+    });
   }
 });
 
 // ── FEATURED AFRICAN FILM (hero) ───────────────────────────
 router.get("/african/featured", async (req, res) => {
   try {
-    const now = new Date();
 
-    // Use a curated subset of the most active African film industries
-    // for the featured hero — more likely to have backdrop images
-    const featuredCountries = AFRICAN_COUNTRIES_ARRAY
-      .filter(c => ["NG", "ZA", "EG", "CM", "GH", "KE", "MA"].includes(c))
-      .join("|");
+    const result = await db.query(`
+      SELECT
+        tmdb_id,
+        title,
+        original_title,
+        synopsis,
+        release_date,
+        release_year,
+        runtime,
+        vote_average,
+        vote_count,
+        poster_path,
+        backdrop_path,
+        origin_country,
+        original_language,
+        genres,
+        director,
+        cast_list,
+        trailer_key
+      FROM african_movies
+      WHERE
+        status = 'published'
+        AND backdrop_path IS NOT NULL
+        AND backdrop_path <> ''
+        AND release_date >= CURRENT_DATE - INTERVAL '2 years'
+        AND tab_region IN (
+          'NG',
+          'ZA',
+          'CM',
+          'GH',
+          'ARAB'
+        )
+      ORDER BY
+        vote_average DESC,
+        vote_count DESC,
+        confidence_score DESC
+      LIMIT 1
+    `);
 
-    const tmdbParams = {
-      language:                   "en-US",
-      sort_by:                    "vote_average.desc",
-      "vote_count.gte":           3,
-      "primary_release_date.gte": `${now.getFullYear() - 1}-01-01`,
-      include_adult:              false,
-      page:                       1,
-    };
-
-    const data = await fetchAfricanMovies(tmdbParams, featuredCountries);
-
-    // Must have backdrop for hero display
-    const withBackdrop = data.movies.filter(m => m.backdrop_path);
-    res.json(withBackdrop[0] || null);
+    res.json(result.rows[0] || null);
 
   } catch (err) {
-    console.error(err.response?.data || err.message);
-    res.status(500).json({ message: "Failed to fetch featured" });
+    console.error(err);
+    res.status(500).json({
+      message: "Failed to fetch featured",
+    });
   }
 });
 // ── AFRICAN MOVIE SEARCH ─────────────────────────────────  
 router.get("/african/search", async (req, res) => {
   try {
     const { q, page = 1 } = req.query;
-    if (!q || q.trim().length < 2) return res.json({ movies: [] });
 
+    if (!q || q.trim().length < 2) {
+      return res.json({ movies: [] });
+    }
+
+    // Search local DB
+    const localResults = await db.query(
+      `
+      SELECT
+        tmdb_id,
+        title,
+        original_title,
+        synopsis,
+        release_date,
+        release_year,
+        vote_average,
+        vote_count,
+        poster_path,
+        backdrop_path,
+        origin_country,
+        original_language,
+        genres
+      FROM african_movies
+      WHERE
+        status = 'published'
+        AND (
+          title ILIKE $1
+          OR original_title ILIKE $1
+        )
+      ORDER BY
+        confidence_score DESC,
+        vote_average DESC,
+        vote_count DESC
+      LIMIT 20
+      `,
+      [`%${q.trim()}%`]
+    );
+
+    if (localResults.rows.length > 0) {
+      return res.json({
+        source: "database",
+        movies: localResults.rows,
+        total_results: localResults.rows.length,
+      });
+    }
+
+    // Fallback to TMDB
     const response = await axios.get(
       "https://api.themoviedb.org/3/search/movie",
       {
         params: {
-          query:         q.trim(),
-          language:      "en-US",
+          query: q.trim(),
+          language: "en-US",
           include_adult: false,
           page,
         },
         headers: {
-          accept:        "application/json",
+          accept: "application/json",
           Authorization: `Bearer ${process.env.TMDB_BEARER}`,
         },
       }
     );
 
-    // Filter results to only African countries using AFRICAN_COUNTRIES_ARRAY
-    const africanResults = response.data.results.filter(m =>
-      m.origin_country?.some(c => AFRICAN_COUNTRIES_ARRAY.includes(c)) ||
-      m.production_countries?.some(c => AFRICAN_COUNTRIES_ARRAY.includes(c.iso_3166_1))
-    );
-
-    res.json({
-      movies:        africanResults,
-      total_results: africanResults.length,
+    return res.json({
+      source: "tmdb",
+      movies: response.data.results,
+      total_results: response.data.total_results,
     });
 
   } catch (err) {
     console.error(err.response?.data || err.message);
-    res.status(500).json({ message: "Search failed" });
+
+    return res.status(500).json({
+      message: "Search failed",
+    });
   }
 });
 

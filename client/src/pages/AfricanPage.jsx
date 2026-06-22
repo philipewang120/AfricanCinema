@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { apiFetch, getToken } from "../api";
 import {
   Box, Button, Stack, Typography, Avatar, Tooltip, Toolbar, CircularProgress, Menu, MenuItem, 
@@ -24,13 +24,14 @@ function useFonts() {
 
 // Country tab config
 const TABS = [
-  { key: "all", label: "🌍 All Africa" },
-  { key: "NG",  label: "🇳🇬 Nollywood" },
-  { key: "CM",  label: "🇨🇲 Cameroon"  },
-  { key: "ZA",  label: "🇿🇦 South Africa" },
-  { key: "GH",  label: "🇬🇭 Ghana"     },
-  { key: "EG",  label: "🇪🇬 Egypt"     },
-];
+  { key: "all",  label: "All Africa" },
+  { key: "NG",   label: " Nollywood" },
+  { key: "CM",   label: "Cameroon" },
+  { key: "GH",   label: "Ghana" },
+  { key: "ZA",   label: "South Africa" },
+  { key: "ARAB", label: "Arab" },
+  { key: "FR",   label: "Francophonie" },
+];;
 
 const PERIODS = [
   { key: "month", label: "This Month" },
@@ -39,9 +40,31 @@ const PERIODS = [
 ];
 
 const COUNTRY_NAMES = {
-  NG: "Nigeria", CM: "Cameroon", ZA: "South Africa",
-  GH: "Ghana", EG: "Egypt", MA: "Morocco", KE: "Kenya",
-  TN: "Tunisia", SN: "Senegal",
+  NG: "Nigeria",
+  CM: "Cameroon",
+  GH: "Ghana",
+  ZA: "South Africa",
+
+  EG: "Egypt",
+  MA: "Morocco",
+  DZ: "Algeria",
+  TN: "Tunisia",
+  LY: "Libya",
+  SD: "Sudan",
+
+  SN: "Senegal",
+  CI: "Côte d'Ivoire",
+  BF: "Burkina Faso",
+  ML: "Mali",
+  NE: "Niger",
+  BJ: "Benin",
+  TG: "Togo",
+  GN: "Guinea",
+  CD: "DR Congo",
+  CG: "Republic of the Congo",
+  GA: "Gabon",
+  TD: "Chad",
+  CF: "Central African Republic",
 };
 
 // Toast system
@@ -166,7 +189,7 @@ function ScrollSection({ title, icon, movies, loading, showRank = false, rightCo
 }
 
 // Navbar search bar — searches African movies, dropdown links out to TMDB
-function AfSearchBar() {
+function AfSearchBar({navigate}) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -246,10 +269,10 @@ function AfSearchBar() {
             <div className="af-search-empty">No movies found</div>
           ) : (
            results.map((m) => (
-  <a
+  <Link
     key={m.id}
     className="af-search-result"
-    href={`https://www.themoviedb.org/movie/${m.id}`}
+    to={`/movie/${m.id}`}
     target="_blank"
     rel="noreferrer"
     onClick={clear}
@@ -270,7 +293,7 @@ function AfSearchBar() {
                     {m.release_date?.slice(0, 4) || ""}
                   </div>
                 </div>
-              </a>
+              </Link>
             ))
           )}
         </div>
@@ -476,7 +499,7 @@ useEffect(() => {
         px: 4,
       }}
     >
-      <AfSearchBar />
+      <AfSearchBar navigate={navigate}/>
 
       <Button
         onClick={() => navigate("/submit")}

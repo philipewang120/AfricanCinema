@@ -106,7 +106,7 @@ function MovieDetailPage() {
               )}
             </div>
 
-            {movie.genres.length > 0 && (
+            {movie.genres?.length > 0 && (
               <div className="md-genres">
                 {movie.genres.map(g => (
                   <Chip key={g} label={g} size="small" className="md-genre-chip" />
