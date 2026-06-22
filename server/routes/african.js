@@ -177,7 +177,7 @@ router.get("/african/search", async (req, res) => {
     }
 
     // Search local DB
-    const localResults = await pool.query(
+    const localResults = await db.query(
       `
       SELECT
         tmdb_id,
@@ -267,7 +267,7 @@ router.get("/african/check-duplicate", verifyToken, async (req, res) => {
 
   try {
     // Check our own african_movies table first
-    const localCheck = await pool.query(
+    const localCheck = await db.query(
       `SELECT id, title, release_year, source, status
        FROM african_movies
        WHERE title ILIKE $1
@@ -313,7 +313,7 @@ router.get("/african/check-duplicate", verifyToken, async (req, res) => {
 router.post("/african/submit", verifyToken, async (req, res) => {
   try {
     // Check eligibility — 10+ movies required
-    const countResult = await pool.query(
+    const countResult = await db.query(
       "SELECT COUNT(*) FROM movies WHERE user_id = $1",
       [req.user.id]
     );
@@ -358,7 +358,7 @@ router.post("/african/submit", verifyToken, async (req, res) => {
     }
 
     // Check for duplicate submission from same user
-    const dupCheck = await pool.query(
+    const dupCheck = await db.query(
       `SELECT id FROM african_submissions
        WHERE submitted_by = $1
        AND title ILIKE $2
@@ -372,7 +372,7 @@ router.post("/african/submit", verifyToken, async (req, res) => {
       });
     }
 
-    const result = await pool.query(
+    const result = await db.query(
       `INSERT INTO african_submissions (
         title, original_title, origin_country, original_language,
         release_year, release_date, poster_url, backdrop_url,
@@ -415,7 +415,7 @@ router.post("/african/submit", verifyToken, async (req, res) => {
 // ── GET USER'S OWN SUBMISSIONS ─────────────────────────────
 router.get("/african/my-submissions", verifyToken, async (req, res) => {
   try {
-    const result = await pool.query(
+    const result = await db.query(
       `SELECT id, title, origin_country, release_year, poster_url,
               status, admin_notes, created_at
        FROM african_submissions
@@ -437,7 +437,7 @@ router.get("/african/movie/:tmdbId", async (req, res) => {
     const { tmdbId } = req.params;
 
     // Try your own database first — instant, no external dependency
-    const dbResult = await pool.query(
+    const dbResult = await db.query(
       `SELECT * FROM african_movies WHERE tmdb_id = $1`,
       [parseInt(tmdbId)]
     );
@@ -445,7 +445,7 @@ router.get("/african/movie/:tmdbId", async (req, res) => {
     if (dbResult.rows.length > 0) {
       const movie = dbResult.rows[0];
       return res.json({
-        id:                movie.tmdb_id,
+        tmdbId:                movie.tmdb_id,
         title:             movie.title,
         original_title:    movie.original_title,
         synopsis:          movie.synopsis,
@@ -484,6 +484,7 @@ router.get("/african/movie/:tmdbId", async (req, res) => {
 
     return res.json({
       id:             data.id,
+      tmdbId:         data.tmdb-id,
       title:          data.title,
       original_title: data.original_title,
       synopsis:       data.overview,
