@@ -7,13 +7,23 @@ const { Pool } = pg;
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: true},
+  ssl: {
+    rejectUnauthorized: false,
+  },
   max: 5,
-  idleTimeoutMillis: 30000,       // close idle connections after 30s
-  connectionTimeoutMillis: 10000, // fail fast if can't connect within 10s
-  keepAlive: true,                // send TCP keepalive packets
-  keepAliveInitialDelayMillis: 10000,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+  keepAlive: true,
 });
+(async () => {
+  try {
+    const result = await pool.query("SELECT NOW()");
+    console.log("✅ Connected to Neon:", result.rows[0]);
+  } catch (err) {
+    console.error("❌ Database connection failed:");
+    console.error(err);
+  }
+})();
 
 // Test connection on startup
 pool.on("error", (err) => {
