@@ -445,7 +445,7 @@ router.get("/african/movie/:tmdbId", async (req, res) => {
     if (dbResult.rows.length > 0) {
       const movie = dbResult.rows[0];
       return res.json({
-        tmdbId:                movie.tmdb_id,
+        tmdbId:            movie.tmdb_id,
         title:             movie.title,
         original_title:    movie.original_title,
         synopsis:          movie.synopsis,
@@ -483,8 +483,8 @@ router.get("/african/movie/:tmdbId", async (req, res) => {
     ) || data.videos?.results?.find(v => v.site === "YouTube");
 
     return res.json({
-      id:             data.id,
-      tmdbId:         data.tmdb_id,
+   
+      tmdbId:         data.id,
       title:          data.title,
       original_title: data.original_title,
       synopsis:       data.overview,
