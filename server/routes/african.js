@@ -176,91 +176,121 @@ router.get("/african/search", async (req, res) => {
       return res.json({ movies: [] });
     }
 
-    // Search local DB
+    // Search local DB first
     const localResults = await db.query(
-      `
-      SELECT
-        tmdb_id,
-        title,
-        original_title,
-        synopsis,
-        release_date,
-        release_year,
-        vote_average,
-        vote_count,
-        poster_path,
-        backdrop_path,
-        origin_country,
-        original_language,
-        genres
-      FROM african_movies
-      WHERE
-        status = 'published'
-        AND (
-          title ILIKE $1
-          OR original_title ILIKE $1
-        )
-      ORDER BY
-        confidence_score DESC,
-        vote_average DESC,
-        vote_count DESC
-      LIMIT 20
-      `,
+      `SELECT
+        tmdb_id, title, original_title, synopsis,
+        release_date, release_year, vote_average, vote_count,
+        poster_path, backdrop_path, origin_country,
+        original_language, genres, status
+       FROM african_movies
+       WHERE status IN ('approved', 'pending')
+         AND (title ILIKE $1 OR original_title ILIKE $1)
+       ORDER BY confidence_score DESC, vote_average DESC, vote_count DESC
+       LIMIT 20`,
       [`%${q.trim()}%`]
     );
 
     if (localResults.rows.length > 0) {
-     const movies = localResults.rows.map(row => ({
-       ...row,
-       tmdbId: row.tmdb_id // Map database tmdb_id to tmdbId
-     }));
+      // Normalize to consistent shape — tmdb_id → id for frontend navigation
+      const movies = localResults.rows.map(row => ({
+        id:                row.tmdb_id,
+        title:             row.title,
+        original_title:    row.original_title,
+        synopsis:          row.synopsis,
+        release_date:      row.release_date,
+        release_year:      row.release_year,
+        vote_average:      parseFloat(row.vote_average) || 0,
+        vote_count:        row.vote_count,
+        poster_path:       row.poster_path,
+        backdrop_path:     row.backdrop_path,
+        origin_country:    row.origin_country,
+        original_language: row.original_language,
+        genres:            row.genres || [],
+        status:            row.status,
+        source:            "database",
+      }));
 
-      return res.json({
-        source: "database",
-       movies: localResults.rows,
-      movies,
-        total_results: localResults.rows.length,
-      });
+      return res.json({ movies, total_results: movies.length, source: "database" });
     }
 
-    // Fallback to TMDB
-     const response = await axios.get(
+    // Fallback — search TMDB
+    const tmdbRes = await axios.get(
       "https://api.themoviedb.org/3/search/movie",
       {
-        params: {
-          query: q.trim(),
-          language: "en-US",
-          include_adult: false,
-          page,
-        },
+        params: { query: q.trim(), language: "en-US", include_adult: false, page },
         headers: {
           accept: "application/json",
           Authorization: `Bearer ${process.env.TMDB_BEARER}`,
         },
       }
     );
-    const movies = response.data.results.map(movie => ({
-     ...movie,
-     tmdbId: movie.id // Map TMDB id to tmdbId
-   }));
+
+    const tmdbMovies = tmdbRes.data.results.map(m => ({
+      id:                m.id,
+      title:             m.title,
+      original_title:    m.original_title,
+      release_date:      m.release_date,
+      vote_average:      m.vote_average,
+      vote_count:        m.vote_count,
+      poster_path:       m.poster_path,
+      backdrop_path:     m.backdrop_path,
+      original_language: m.original_language,
+      source:            "tmdb",
+    }));
+
+    // Queue TMDB results for admin review — insert as pending if not already in DB
+    // Fire-and-forget: don't await, don't block the search response
+    queueTmdbResultsForReview(tmdbMovies).catch(err =>
+      console.error("Background queue failed:", err.message)
+    );
 
     return res.json({
-      source: "tmdb",
-     tmdbId: response.id,
-     movies: response.data.results,
-     movies,
-      total_results: response.data.total_results,
+      movies:        tmdbMovies,
+      total_results: tmdbRes.data.total_results,
+      source:        "tmdb",
     });
-
 
   } catch (err) {
     console.error(err.response?.data || err.message);
-
-    return res.status(500).json({
-      message: "Search failed",
-    });
+    return res.status(500).json({ message: "Search failed" });
   }
 });
+
+// Insert TMDB search results into african_movies as pending,
+// skipping any that already exist (ON CONFLICT DO NOTHING)
+async function queueTmdbResultsForReview(movies) {
+  for (const m of movies) {
+    if (!m.id) continue;
+    try {
+      await db.query(
+        `INSERT INTO african_movies (
+          tmdb_id, title, original_title, release_date, release_year,
+          vote_average, vote_count, poster_path, backdrop_path,
+          original_language, source, status, confidence_score
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+        ON CONFLICT (tmdb_id) DO NOTHING`,
+        [
+          m.id,
+          m.title,
+          m.original_title || null,
+          m.release_date || null,
+          m.release_date ? parseInt(m.release_date.slice(0, 4)) : null,
+          m.vote_average || 0,
+          m.vote_count || 0,
+          m.poster_path || null,
+          m.backdrop_path || null,
+          m.original_language || null,
+          "tmdb_search",
+          "pending",
+          1, // lowest confidence — user searched for it but it's unverified
+        ]
+      );
+    } catch (err) {
+      console.error(`Failed to queue tmdb_id ${m.id}:`, err.message);
+    }
+  }
+}
 
 //SUBMISSION ROUTES
 

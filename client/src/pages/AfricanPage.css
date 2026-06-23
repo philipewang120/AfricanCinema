@@ -529,3 +529,14 @@
   background: #f0d050 !important;
   transform: scale(1.03);
 }
+.af-search-result-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(232,197,71,0.1);
+  border: 1px solid rgba(232,197,71,0.2);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-top: 2px;
+  display: inline-block;
+}

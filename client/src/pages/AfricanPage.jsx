@@ -265,32 +265,35 @@ function AfSearchBar({navigate}) {
             <div className="af-search-empty">No movies found</div>
           ) : (
            results.map((m) => (
-  <Link
-    key={m.tmdb_id}
+  <div
+    key={m.id}
     className="af-search-result"
-    to={`/movie/${m.tmdb_id}`}
-    target="_blank"
-    rel="noreferrer"
-    onClick={clear}
+    onClick={() => {
+      clear();
+      navigate(`/movie/${m.id}`);
+    }}
   >
-                {m.poster_path ? (
-                  <img
-                    src={`https://image.tmdb.org/t/p/w92${m.poster_path}`}
-                    alt={m.title}
-                  />
-                ) : (
-                  <div className="af-search-result-fallback">
-                    <Movie sx={{ fontSize: 16, opacity: 0.4 }} />
-                  </div>
-                )}
-                <div className="af-search-result-info">
-                  <div className="af-search-result-title">{m.title}</div>
-                  <div className="af-search-result-year">
-                    {m.release_date?.slice(0, 4) || ""}
-                  </div>
-                </div>
-              </Link>
-            ))
+    {m.poster_path ? (
+      <img
+        src={`https://image.tmdb.org/t/p/w92${m.poster_path}`}
+        alt={m.title}
+      />
+    ) : (
+      <div className="af-search-result-fallback">
+        <Movie sx={{ fontSize: 16, opacity: 0.4 }} />
+      </div>
+    )}
+    <div className="af-search-result-info">
+      <div className="af-search-result-title">{m.title}</div>
+      <div className="af-search-result-year">
+        {m.release_date?.slice(0, 4) || ""}
+      </div>
+      {m.source === "tmdb" && (
+        <div className="af-search-result-badge">Pending review</div>
+      )}
+    </div>
+  </div>
+))
           )}
         </div>
       )}
