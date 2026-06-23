@@ -109,7 +109,7 @@ function AfMovieCard({ movie, rank, navigate}) {
   const country = COUNTRY_NAMES[movie.origin_country?.[0]] || movie.origin_country?.[0] || "";
 
  return (
- <div className="af-movie-card" onClick={() => navigate(`/movie/${movie.tmdbId}`)}>
+ <div className="af-movie-card" onClick={() => navigate(`/movie/${movie.tmdb_id}`)}>
       <div className="af-card-poster-wrap">
         {movie.poster_path ? (
           <img
@@ -265,9 +265,9 @@ function AfSearchBar({navigate}) {
           ) : (
            results.map((m) => (
   <Link
-    key={m.tmdbId}
+    key={m.tmdb_id}
     className="af-search-result"
-    to={`/movie/${m.tmdbId}`}
+    to={`/movie/${m.tmdb_id}`}
     target="_blank"
     rel="noreferrer"
     onClick={clear}
