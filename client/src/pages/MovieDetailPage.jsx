@@ -28,7 +28,7 @@ function MovieDetailPage() {
     setLoading(true);
     fetch(`${import.meta.env.VITE_API_URL}/african/movie/${tmdbId}`)
       .then(r => r.json())
-      .then(data => setMovie(data?.id ? data : null))
+      .then(data => setMovie(data?.tmdbId === tmdbId ? data : null))
       .catch(() => setMovie(null))
       .finally(() => setLoading(false));
   }, [tmdbId]);
