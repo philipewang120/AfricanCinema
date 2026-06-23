@@ -432,38 +432,76 @@ router.get("/african/my-submissions", verifyToken, async (req, res) => {
 
 // ── GET MOVIE DETAILS BY TMDB ID ─────
 
+
 router.get("/african/movie/:tmdbId", async (req, res) => {
   try {
     const { tmdbId } = req.params;
 
-    // Try your own database first — instant, no external dependency
+    // Try DB first
     const dbResult = await db.query(
       `SELECT * FROM african_movies WHERE tmdb_id = $1`,
       [parseInt(tmdbId)]
     );
 
     if (dbResult.rows.length > 0) {
-      const movie = dbResult.rows[0];
+      const m = dbResult.rows[0];
       return res.json({
-        id:                movie.tmdb_id,
-        tmdbId:            movie.tmdb_id,
-        title:             movie.title,
-        original_title:    movie.original_title,
-        synopsis:          movie.synopsis,
-        release_date:      movie.release_date,
-        runtime:           movie.runtime,
-        vote_average:      movie.vote_average,
-        vote_count:        movie.vote_count,
-        genres:            movie.genres || [],
-        poster_path:       movie.poster_path,
-        backdrop_path:     movie.backdrop_path,
-        origin_country:    movie.origin_country ? [movie.origin_country] : [],
-        original_language: movie.original_language,
-        cast:              (movie.cast_list || []).map(name => ({ name, character: "" })),
-        director:          movie.director,
-        trailerKey:        movie.trailer_key,
+        id:                m.tmdb_id,
+        title:             m.title,
+        original_title:    m.original_title,
+        synopsis:          m.synopsis,
+        release_date:      m.release_date,
+        runtime:           m.runtime,
+        vote_average:      parseFloat(m.vote_average) || 0,
+        vote_count:        m.vote_count,
+        genres:            m.genres || [],
+        poster_path:       m.poster_path,
+        backdrop_path:     m.backdrop_path,
+        origin_country:    m.origin_country ? [m.origin_country] : [],
+        original_language: m.original_language,
+        cast:              (m.cast_list || []).map(name => ({ name, character: "", profile_path: null })),
+        director:          m.director,
+        trailerKey:        m.trailer_key,
       });
     }
+
+    // Fallback — not in DB yet, fetch live from TMDB
+    const tmdbRes = await axios.get(
+      `https://api.themoviedb.org/3/movie/${tmdbId}`,
+      {
+        params: { append_to_response: "videos,credits" },
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${process.env.TMDB_BEARER}`,
+        },
+      }
+    );
+
+    const data = tmdbRes.data;
+    const trailer = data.videos?.results?.find(
+      v => v.site === "YouTube" && v.type === "Trailer"
+    ) || data.videos?.results?.find(v => v.site === "YouTube");
+
+    return res.json({
+      id:                data.id,
+      title:             data.title,
+      original_title:    data.original_title,
+      synopsis:          data.overview,
+      release_date:      data.release_date,
+      runtime:           data.runtime,
+      vote_average:      data.vote_average,
+      vote_count:        data.vote_count,
+      genres:            data.genres?.map(g => g.name) || [],
+      poster_path:       data.poster_path,
+      backdrop_path:     data.backdrop_path,
+      origin_country:    data.production_countries?.map(c => c.iso_3166_1) || [],
+      original_language: data.original_language,
+      cast: data.credits?.cast?.slice(0, 10).map(c => ({
+        name: c.name, character: c.character, profile_path: c.profile_path,
+      })) || [],
+      director:   data.credits?.crew?.find(c => c.job === "Director")?.name || null,
+      trailerKey: trailer?.key || null,
+    });
 
   } catch (err) {
     console.error(err.response?.data || err.message);

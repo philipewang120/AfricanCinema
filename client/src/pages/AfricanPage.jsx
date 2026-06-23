@@ -9,6 +9,7 @@ import {
   ArrowBack, Add, ChevronLeft, ChevronRight, Refresh,
   Search as SearchIcon, Close as CloseIcon, Logout, PlayArrow,
 } from "@mui/icons-material";
+import { TrailerModal } from "./MovieDetailPage";
 import "./AfricanPage.css";
 
 function useFonts() {
@@ -326,6 +327,8 @@ function AfricanPage() {
 
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const [featuredTrailerOpen, setFeaturedTrailerOpen] = useState(false);
 
 useEffect(() => {
   // Handle OAuth redirect — token arrives via URL query param
@@ -698,15 +701,15 @@ async function loadTopRated() {
             </span>
           )}
         </div>
-        {featured.trailer_key && (
-          <Button
-            className="af-hero-play-btn"
-            startIcon={<PlayArrow />}
-            onClick={() => window.open(`https://www.youtube.com/watch?v=${featured.trailer_key}`, "_blank")}
-          >
-            Watch Trailer
-          </Button>
-        )}
+{featured?.trailer_key && (
+  <Button
+    className="af-hero-play-btn"
+    startIcon={<PlayArrow />}
+    onClick={() => setFeaturedTrailerOpen(true)}
+  >
+    Watch Trailer
+  </Button>
+)}
       </>
     ) : (
       <>
@@ -718,6 +721,13 @@ async function loadTopRated() {
     )}
   </div>
 </div>
+{/* Trailer modal for featured film */}
+{featuredTrailerOpen && featured?.trailer_key && (
+  <TrailerModal
+    trailerKey={featured.trailer_key}
+    onClose={() => setFeaturedTrailerOpen(false)}
+  />
+)}
 
         {/* ── BODY ── */}
         <div className="af-body">
