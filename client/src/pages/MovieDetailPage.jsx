@@ -26,7 +26,7 @@ function MovieDetailPage() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${import.meta.env.VITE_API_URL}/african/movie/${tmdb_id}`)
+    fetch(`${import.meta.env.VITE_API_URL}/african/movie/${tmdbId}`)
       .then(r => r.json())
       .then(data => setMovie(data?.id ? data : null))
       .catch(() => setMovie(null))
