@@ -1,6 +1,8 @@
 import express from "express";
 import db from "../db.js";
-import { verifyAdmin } from "../middleware/auth.js";
+import { verifyAdmin, verifyToken , } from "../middleware/auth.js";
+
+import { startPipelineCron } from "../cron/pipelineJob.js";
 
 const router = express.Router();
 
@@ -323,6 +325,18 @@ router.get("/stats", verifyAdmin, async (req, res) => {
     console.error(err);
     res.status(500).json({ message: "Failed to load stats" });
   }
+});
+// ── MANUAL PIPELINE TRIGGER (admin) ───────────────────────
+router.post("/admin/run-pipeline", verifyToken, async (req, res) => {
+  // Check admin role
+  const payload = JSON.parse(atob(req.headers.authorization.split(" ")[1].split(".")[1]));
+  if (payload.role !== "admin") {
+    return res.status(403).json({ message: "Admin only" });
+  }
+
+  // Don't await — let it run in background, respond immediately
+  res.json({ message: "Pipeline triggered — check server logs for progress" });
+  runPipeline();
 });
 
 export default router;
