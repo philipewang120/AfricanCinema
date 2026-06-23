@@ -445,6 +445,7 @@ router.get("/african/movie/:tmdbId", async (req, res) => {
     if (dbResult.rows.length > 0) {
       const movie = dbResult.rows[0];
       return res.json({
+        id:                movie.tmdb_id,
         tmdbId:            movie.tmdb_id,
         title:             movie.title,
         original_title:    movie.original_title,
