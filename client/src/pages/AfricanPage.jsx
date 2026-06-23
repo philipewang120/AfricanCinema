@@ -109,7 +109,7 @@ function AfMovieCard({ movie, rank, navigate}) {
   const country = COUNTRY_NAMES[movie.origin_country?.[0]] || movie.origin_country?.[0] || "";
 
  return (
- <div className="af-movie-card" onClick={() => navigate(`/movie/${movie.tmdb_Id}`)}>
+ <div className="af-movie-card" onClick={() => navigate(`/movie/${movie.tmdbId}`)}>
       <div className="af-card-poster-wrap">
         {movie.poster_path ? (
           <img
@@ -172,7 +172,7 @@ function ScrollSection({ title, icon, movies, loading, showRank = false, rightCo
                 No movies found for this selection
               </div>
             )
-            :movies.map((m, i) => ( <AfMovieCard key={m.id} movie={m} rank={showRank ? i + 1 : null} navigate={navigate} />))
+            :movies.map((m, i) => ( <AfMovieCard key={m.tmdbId} movie={m} rank={showRank ? i + 1 : null} navigate={navigate} />))
           }
         </div>
         <button className="af-scroll-btn right" onClick={() => scroll(1)}>
@@ -265,9 +265,9 @@ function AfSearchBar({navigate}) {
           ) : (
            results.map((m) => (
   <Link
-    key={m.tmdb_Id}
+    key={m.tmdbId}
     className="af-search-result"
-    to={`/movie/${m.tmdb_Id}`}
+    to={`/movie/${m.tmdbId}`}
     target="_blank"
     rel="noreferrer"
     onClick={clear}
