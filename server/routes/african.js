@@ -210,15 +210,21 @@ router.get("/african/search", async (req, res) => {
     );
 
     if (localResults.rows.length > 0) {
+     const movies = localResults.rows.map(row => ({
+       ...row,
+       tmdbId: row.tmdb_id // Map database tmdb_id to tmdbId
+     }));
+
       return res.json({
         source: "database",
-        movies: localResults.rows,
+       movies: localResults.rows,
+      movies,
         total_results: localResults.rows.length,
       });
     }
 
     // Fallback to TMDB
-    const response = await axios.get(
+     const response = await axios.get(
       "https://api.themoviedb.org/3/search/movie",
       {
         params: {
@@ -233,12 +239,19 @@ router.get("/african/search", async (req, res) => {
         },
       }
     );
+    const movies = response.data.results.map(movie => ({
+     ...movie,
+     tmdbId: movie.id // Map TMDB id to tmdbId
+   }));
 
     return res.json({
       source: "tmdb",
-      movies: response.data.results,
+     tmdbId: response.id,
+     movies: response.data.results,
+     movies,
       total_results: response.data.total_results,
     });
+
 
   } catch (err) {
     console.error(err.response?.data || err.message);
