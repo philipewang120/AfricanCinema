@@ -7,10 +7,13 @@ import {
 import {
   Movie, Star, TrendingUp, NewReleases, Public, Person, Settings,
   ArrowBack, Add, ChevronLeft, ChevronRight, Refresh,
-  Search as SearchIcon, Close as CloseIcon, Logout, PlayArrow,
+  Search as SearchIcon, Close as CloseIcon, Logout, PlayArrow, AutoAwesome, Language,
 } from "@mui/icons-material";
 import { TrailerModal } from "./MovieDetailPage";
 import "./AfricanPage.css";
+import { API_URL } from "/src/config";
+
+
 
 function useFonts() {
   useEffect(() => {
@@ -144,7 +147,7 @@ function AfMovieCard({ movie, rank, navigate}) {
 // Horizontal scroll section
 function ScrollSection({ title, icon, movies, loading, showRank = false, rightContent, navigate }) {
   const scrollRef = useRef(null);
-
+  if (!loading && movies.length === 0) return null;
   function scroll(dir) {
     if (scrollRef.current) {
       scrollRef.current.scrollBy({ left: dir * 360, behavior: "smooth" });
@@ -221,7 +224,7 @@ function AfSearchBar({navigate}) {
     debounceRef.current = setTimeout(async () => {
       try {
         const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/african/search?q=${encodeURIComponent(value)}`
+          `${API_URL}/african/search?q=${encodeURIComponent(value)}`
         );
         const data = await res.json();
         setResults(data.movies || []);
@@ -316,6 +319,10 @@ function AfricanPage() {
   const [loadingMore,  setLoadingMore]  = useState(false);
   const [latestPage,   setLatestPage]   = useState(1);
   const [hasMoreLatest,setHasMoreLatest]= useState(true);
+  const [classics,    setClassics]    = useState([]);
+const [spotlights,  setSpotlights]  = useState([]);
+const [loadingClassics,   setLoadingClassics]   = useState(true);
+const [loadingSpotlights, setLoadingSpotlights] = useState(true);
 //auth role
   const [role, setRole] = useState(null);
 
@@ -414,6 +421,14 @@ useEffect(() => {
     setHasMoreLatest(true);
     loadLatest(1, false);
   }, [activeTab]);
+// Load classics when tab changes
+  useEffect(() => {
+  loadClassics();
+}, [activeTab]);
+// Load spotlights once
+useEffect(() => {
+  loadSpotlights();
+}, []);
 
 // load top rated movies from database
 async function loadTopRated() {
@@ -427,14 +442,15 @@ async function loadTopRated() {
   } catch { setTopRated([]); }
   finally { setLoadingTop(false); }
 }
-
+//load latest movies from database
   async function loadLatest(page = 1, append = false) {
   if (page === 1) setLoadingLatest(true);
   else setLoadingMore(true);
   try {
     const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/african/latest?tab=${activeTab}&page=${page}`
+      `${import.meta.env.VITE_API_URL}/african/latest?tab=${activeTab}&page=${page}` 
     );
+     console.log("API URL:", import.meta.env.VITE_API_URL); // Debugging line to check the API URL
     const data = await res.json();
     const movies = data.movies || [];
     if (append) {
@@ -449,6 +465,30 @@ async function loadTopRated() {
     setLoadingLatest(false);
     setLoadingMore(false);
   }
+}
+// load classics movies from database
+async function loadClassics() {
+  setLoadingClassics(true);
+  try {
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/african/classics?tab=${activeTab}`
+    );
+    const data = await res.json();
+    setClassics(data.movies || []);
+  } catch { setClassics([]); }
+  finally { setLoadingClassics(false); }
+}
+// load spotlights movies from database
+async function loadSpotlights() {
+  setLoadingSpotlights(true);
+  try {
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/african/spotlights`
+    );
+    const data = await res.json();
+    setSpotlights(data.spotlights || []);
+  } catch { setSpotlights([]); }
+  finally { setLoadingSpotlights(false); }
 }
   function handleLoadMore() {
     const next = latestPage + 1;
@@ -523,6 +563,7 @@ async function loadTopRated() {
       >
         + Submit a Film
       </Button>
+     
     </Box>
 
     {/* RIGHT — auth-aware */}
@@ -770,6 +811,31 @@ async function loadTopRated() {
               </div>
             }
           />
+
+          {/* ── AFRICAN CLASSICS ── */}
+{(classics.length > 0 || loadingClassics) && (
+  <ScrollSection
+    title="AFRICAN CLASSICS"
+    icon={<AutoAwesome sx={{ fontSize: 20 }} />}
+    movies={classics}
+    loading={loadingClassics}
+    showRank={false}
+    navigate={navigate}
+  />
+)}
+
+{/* ── COUNTRY SPOTLIGHTS — only on All Africa tab ── */}
+{activeTab === "all" && spotlights.map(spotlight => (
+  <ScrollSection
+    key={spotlight.key}
+    title={spotlight.label.toUpperCase()}
+    icon={<Language sx={{ fontSize: 20 }} />}
+    movies={spotlight.movies}
+    loading={loadingSpotlights}
+    showRank={false}
+    navigate={navigate}
+  />
+))}
 
           {/* Latest Releases */}
           <div className="af-section fade-up">

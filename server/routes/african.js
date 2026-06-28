@@ -30,46 +30,58 @@ router.get("/african/top-rated", async (req, res) => {
   try {
     const { tab = "all", period = "year" } = req.query;
     const regions = getTabRegions(tab);
-
-    // Build date filter for period
-    let dateFilter = "";
     const now = new Date();
-    if (period === "month") {
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-        .toISOString().split("T")[0];
-      dateFilter = `AND release_date >= '${firstDay}'`;
-    } else if (period === "year") {
-      dateFilter = `AND release_year = ${now.getFullYear()}`;
-    }
-    // "all" period — no date filter
+    const params = [];
+    let paramIndex = 1;
 
-    // Build region filter
-    let regionFilter = "";
-    const regionParams = [];
-    if (regions) {
-      const placeholders = regions.map((_, i) => `$${i + 1}`).join(", ");
-      regionFilter = `AND tab_region IN (${placeholders})`;
-      regionParams.push(...regions);
+    // Period filter — much more generous windows
+    let dateFilter = "";
+    if (period === "month") {
+      // Last 6 months instead of current month only
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      dateFilter = `AND release_date >= $${paramIndex++}`;
+      params.push(sixMonthsAgo.toISOString().split("T")[0]);
+    } else if (period === "year") {
+      // Last 3 years instead of current year only
+      const threeYearsAgo = new Date();
+      threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+      dateFilter = `AND release_date >= $${paramIndex++}`;
+      params.push(threeYearsAgo.toISOString().split("T")[0]);
     }
+
+    // Region filter
+    let regionFilter = "";
+    if (regions) {
+      const placeholders = regions.map(() => `$${paramIndex++}`).join(", ");
+      regionFilter = `AND tab_region IN (${placeholders})`;
+      params.push(...regions);
+    }
+
+    // For All Africa tab, apply regional balance in app layer
+    // For individual tabs, just return everything available sorted by score
+    const limit = tab === "NG" ? 60 : tab === "all" ? 80 : 40;
 
     const query = `
       SELECT
         id, tmdb_id, title, release_date, release_year,
         poster_path, backdrop_path, vote_average, vote_count,
         genres, director, origin_country, tab_region,
-        confidence_score, trailer_key
+        confidence_score, trailer_key, synopsis
       FROM african_movies
       WHERE status = 'approved'
-        AND vote_count > 0
         ${dateFilter}
         ${regionFilter}
-      ORDER BY confidence_score DESC, vote_average DESC
-      LIMIT ${tab === "NG" ? 60 : 25}
+      ORDER BY
+        confidence_score DESC,
+        CASE WHEN vote_count > 5 THEN vote_average ELSE 0 END DESC,
+        vote_count DESC
+      LIMIT ${limit}
     `;
 
-    const result = await db.query(query, regionParams);
-
+    const result = await db.query(query, params);
     res.json({ movies: result.rows, total: result.rows.length });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch top rated" });
@@ -549,6 +561,89 @@ router.get("/african/movie/:tmdbId", async (req, res) => {
   } catch (err) {
     console.error(err.response?.data || err.message);
     res.status(404).json({ message: "Movie not found" });
+  }
+});
+
+// ── AFRICAN CLASSICS (pre-2000) ───────────────────────────────────────────────
+router.get("/african/classics", async (req, res) => {
+  try {
+    const { tab = "all" } = req.query;
+    const regions = getTabRegions(tab);
+    const params = [];
+    let paramIndex = 1;
+
+    let regionFilter = "";
+    if (regions) {
+      const placeholders = regions.map(() => `$${paramIndex++}`).join(", ");
+      regionFilter = `AND tab_region IN (${placeholders})`;
+      params.push(...regions);
+    }
+
+    const result = await db.query(
+      `SELECT
+        id, tmdb_id, title, release_date, release_year,
+        poster_path, backdrop_path, vote_average, vote_count,
+        genres, director, tab_region, confidence_score, trailer_key
+       FROM african_movies
+       WHERE status = 'approved'
+         AND release_year < 2000
+         AND release_year IS NOT NULL
+         AND poster_path IS NOT NULL
+         ${regionFilter}
+       ORDER BY confidence_score DESC, vote_average DESC, vote_count DESC
+       LIMIT 30`,
+      params
+    );
+
+    res.json({ movies: result.rows, total: result.rows.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch classics" });
+  }
+});
+
+// ── COUNTRY SPOTLIGHTS (best 8 per region for All Africa homepage) ────────────
+router.get("/african/spotlights", async (req, res) => {
+  try {
+    const SPOTLIGHT_REGIONS = [
+      { key: "CM",   label: "Best of Cameroon",      regions: ["CM"] },
+      { key: "GH",   label: "Best of Ghana",          regions: ["GH"] },
+      { key: "ZA",   label: "Best of South Africa",   regions: ["ZA"] },
+      { key: "ARAB", label: "Best of Arab Africa",    regions: ["EG", "DZ", "MA", "TN"] },
+      { key: "FR",   label: "Best of Francophonie",   regions: ["SN", "ML", "CI", "GN", "TD", "CD", "NE", "MR"] },
+    ];
+
+    const spotlights = [];
+
+    for (const region of SPOTLIGHT_REGIONS) {
+      const placeholders = region.regions.map((_, i) => `$${i + 1}`).join(", ");
+      const result = await db.query(
+        `SELECT
+          id, tmdb_id, title, release_date, release_year,
+          poster_path, backdrop_path, vote_average, vote_count,
+          genres, director, tab_region, confidence_score, trailer_key
+         FROM african_movies
+         WHERE status = 'approved'
+           AND poster_path IS NOT NULL
+           AND tab_region IN (${placeholders})
+         ORDER BY confidence_score DESC, vote_average DESC
+         LIMIT 8`,
+        region.regions
+      );
+
+      if (result.rows.length > 0) {
+        spotlights.push({
+          key:    region.key,
+          label:  region.label,
+          movies: result.rows,
+        });
+      }
+    }
+
+    res.json({ spotlights });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch spotlights" });
   }
 });
 export default router;

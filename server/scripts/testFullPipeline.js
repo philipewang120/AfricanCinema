@@ -7,6 +7,8 @@ import { verifyAllCandidates } from "../helpers/tmdbVerify.js";
 import { enrichAllCandidates } from "../helpers/tmdbEnrich.js";
 import { buildAllTabs }        from "../helpers/buildTabData.js";
 import { publishToDatabase }   from "../helpers/publishToDatabase.js";
+import { runActorSweep }    from "../helpers/actorSweep.js";
+import { runLanguageSweep } from "../helpers/languageSweep.js";
 
 
 // Warm up DB connection before the pipeline starts
@@ -21,9 +23,11 @@ try {
 console.log("=== Phase A: Collect ===");
 const directorResults = await runDirectorSweep();
 const wikiResults     = await runWikipediaSweep();
+const actorResults    = await runActorSweep();
+const languageResults = await runLanguageSweep();
 
 console.log("\n=== Phase B: Merge + Verify ===");
-const merged = mergeCandidates(directorResults, wikiResults);
+const merged = mergeCandidates(directorResults, wikiResults, actorResults, languageResults);
 console.log(`Merged candidates: ${merged.length}`);
 
 const { verified, rejected } = await verifyAllCandidates(merged);

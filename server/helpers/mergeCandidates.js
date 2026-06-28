@@ -1,10 +1,12 @@
 const SOURCE_WEIGHTS = {
-  director_sweep: 3,
-  tmdb_discover: 2,
-  wikipedia: 2,
-  community: 3,
-  admin_json: 5,
-  rss: 1,
+  director_sweep:  3,
+  actor_sweep:     2,
+  language_sweep:  2,
+  tmdb_discover:   2,
+  wikipedia:       2,
+  community:       3,
+  admin_json:      5,
+  rss:             1,
 };
 
 function extractTrailingNumber(title = "") {

@@ -7,6 +7,8 @@ import { verifyAllCandidates } from "../helpers/tmdbVerify.js";
 import { enrichAllCandidates } from "../helpers/tmdbEnrich.js";
 import { buildAllTabs }        from "../helpers/buildTabData.js";
 import { publishToDatabase }   from "../helpers/publishToDatabase.js";
+import { runActorSweep }    from "../helpers/actorSweep.js";
+import { runLanguageSweep } from "../helpers/languageSweep.js";
 import db from "../db.js";
 
 // Track whether a job is currently running — prevents overlap if
@@ -29,15 +31,18 @@ export async function runPipeline() {
     console.log("[Pipeline] ✓ Database connected");
 
     // Phase A — Collect
-    console.log("\n[Pipeline] Phase A: Collecting candidates...");
-    const [directorResults, wikiResults] = await Promise.all([
-      runDirectorSweep(),
-      runWikipediaSweep(),
-    ]);
+ console.log("\n[Pipeline] Phase A: Collecting candidates...");
+const [directorResults, wikiResults, actorResults, languageResults] = await Promise.all([
+  runDirectorSweep(),
+  runWikipediaSweep(),
+  runActorSweep(),
+  runLanguageSweep(3), // 3 pages per language = ~1,200 candidates max
+]);
+ 
 
     // Phase B — Merge, Verify, Enrich
     console.log("\n[Pipeline] Phase B: Merging and verifying...");
-    const merged = mergeCandidates(directorResults, wikiResults);
+    const merged = mergeCandidates( directorResults,wikiResults,actorResults,languageResults);
     console.log(`[Pipeline] Merged: ${merged.length} candidates`);
 
     const { verified, rejected } = await verifyAllCandidates(merged);

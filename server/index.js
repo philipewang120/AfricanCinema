@@ -4,12 +4,15 @@ import cors from "cors";
 import passport from "passport";
 import pg from "pg";
 
+
 import "./config/passport.js";
 
 import authRoutes from "./routes/auth.js";
 import africanRoutes from "./routes/african.js";
 import adminRoutes from "./routes/admin.js";
 import profileRoutes from "./routes/profile.js";
+import { startPipelineCron } from "./cron/pipelineJob.js";
+
 
 dotenv.config();
 
@@ -17,7 +20,8 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 const allowedOrigins = [
-  "https://localhost:5173",
+  "http://localhost:5173",
+  "http://localhost:3000",
   process.env.CLIENT_URL,
      
 ].filter(Boolean);
@@ -47,4 +51,5 @@ app.use("/", profileRoutes);
 
 app.listen(port, () => {
   console.log(`African Cinema API running on port ${port}`);
+  startPipelineCron();
 });

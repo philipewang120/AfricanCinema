@@ -33,8 +33,8 @@ async function fetchFullMovieData(tmdbId) {
       title:             data.title,
       original_title:    data.original_title,
       synopsis:          data.overview || null,
-      release_date:      data.release_date || null,
-      release_year:      data.release_date ? parseInt(data.release_date.slice(0, 4)) : null,
+      release_date:      data.release_date?.trim() || null,
+      release_year:      data.release_date?.trim() ? parseInt(data.release_date.slice(0, 4)) : null,
       runtime:           data.runtime || null,
       vote_average:      data.vote_average || 0,
       vote_count:        data.vote_count || 0,
@@ -77,7 +77,7 @@ export async function enrichAllCandidates(verifiedCandidates) {
       failed.push(candidate.tmdb_id);
     }
 
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => setTimeout(r, 300));
   }
 
   console.log(`Enrichment complete: ${enriched.length} enriched, ${failed.length} failed`);
