@@ -42,6 +42,4 @@ npm-debug.log*
 client/.env.example
 
 # Local databases
-server/config/actorDatabase.json
-server/config/directorDatabase.json
-server/config/adminMovies.json
+
