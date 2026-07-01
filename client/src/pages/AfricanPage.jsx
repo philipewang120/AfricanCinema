@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiFetch, getToken } from "../api";
 import {
-  Box, Button, Stack, Typography, Avatar, Tooltip, Toolbar, CircularProgress, Menu, MenuItem, 
+  Box, Button, Stack, Typography, Avatar, Tooltip, Toolbar, CircularProgress, Menu, MenuItem,
 } from "@mui/material";
 import {
   Movie, Star, TrendingUp, NewReleases, Public, Person, Settings,
@@ -12,6 +12,7 @@ import {
 import { TrailerModal } from "./MovieDetailPage";
 import "./AfricanPage.css";
 import { API_URL } from "/src/config";
+
 
 
 
@@ -26,42 +27,46 @@ function useFonts() {
   }, []);
 }
 
+function isFullUrl(str) {
+  return !!(str && (str.startsWith("http://") || str.startsWith("https://")));
+}
+
 // Country tab config
 const TABS = [
-  { key: "all",  label: "🌍 All Africa"    },
-  { key: "NG",   label: "🇳🇬 Nollywood"    },
-  { key: "CM",   label: "🇨🇲 Cameroon"     },
-  { key: "ZA",   label: "🇿🇦 South Africa"  },
-  { key: "GH",   label: "🇬🇭 Ghana"        },
-  { key: "ARAB", label: "🌙 Arab Africa"   },
-  { key: "FR",   label: "🎭 Francophonie"  },
+  { key: "all", label: "🌍 All Africa" },
+  { key: "NG", label: "🇳🇬 Nollywood" },
+  { key: "CM", label: "🇨🇲 Cameroon" },
+  { key: "ZA", label: "🇿🇦 South Africa" },
+  { key: "GH", label: "🇬🇭 Ghana" },
+  { key: "ARAB", label: "🌙 Arab Africa" },
+  { key: "FR", label: "🎭 Francophonie" },
 ];
 
 const PERIODS = [
   { key: "month", label: "This Month" },
-  { key: "year",  label: "This Year"  },
-  { key: "all",   label: "All Time"   },
+  { key: "year", label: "This Year" },
+  { key: "all", label: "All Time" },
 ];
 
 const COUNTRY_NAMES = {
-  NG:   "Nigeria",
-  CM:   "Cameroon",
-  ZA:   "South Africa",
-  GH:   "Ghana",
-  EG:   "Egypt",
-  DZ:   "Algeria",
-  MA:   "Morocco",
-  TN:   "Tunisia",
-  SN:   "Senegal",
-  ML:   "Mali",
-  CI:   "Côte d'Ivoire",
-  GN:   "Guinea",
-  TD:   "Chad",
-  CD:   "DR Congo",
-  NE:   "Niger",
-  MR:   "Mauritania",
+  NG: "Nigeria",
+  CM: "Cameroon",
+  ZA: "South Africa",
+  GH: "Ghana",
+  EG: "Egypt",
+  DZ: "Algeria",
+  MA: "Morocco",
+  TN: "Tunisia",
+  SN: "Senegal",
+  ML: "Mali",
+  CI: "Côte d'Ivoire",
+  GN: "Guinea",
+  TD: "Chad",
+  CD: "DR Congo",
+  NE: "Niger",
+  MR: "Mauritania",
   ARAB: "Arab Africa",
-  FR:   "Francophonie",
+  FR: "Francophonie",
 };
 
 // Toast system
@@ -105,20 +110,26 @@ function SkeletonRow({ count = 6 }) {
 }
 
 // Single movie card
-function AfMovieCard({ movie, rank, navigate}) {
+function AfMovieCard({ movie, rank, navigate }) {
   const year = movie.release_date?.slice(0, 4);
   const rating = Number.isFinite(Number(movie.vote_average))
-  ? Number(movie.vote_average).toFixed(1)
-  : "N/A";
-  const country = COUNTRY_NAMES[movie.origin_country?.[0]] || movie.origin_country?.[0] || "";
+    ? Number(movie.vote_average).toFixed(1)
+    : null;
 
- return (
- <div className="af-movie-card" onClick={() => navigate(`/movie/${movie.tmdb_id}`)}>
+  // Resolve poster — full URL from community submissions or TMDB path
+  const posterSrc = movie.poster_path
+    ? isFullUrl(movie.poster_path)
+      ? movie.poster_path
+      : `https://image.tmdb.org/t/p/w342${movie.poster_path}`
+    : null;
+
+  return (
+    <div className="af-movie-card" onClick={() => navigate(`/movie/${movie.tmdb_id || movie.id}`)}>
       <div className="af-card-poster-wrap">
-        {movie.poster_path ? (
+        {posterSrc ? (
           <img
             className="af-card-poster"
-            src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
+            src={posterSrc}
             alt={movie.title}
             loading="lazy"
           />
@@ -143,6 +154,8 @@ function AfMovieCard({ movie, rank, navigate}) {
     </div>
   );
 }
+
+
 
 // Horizontal scroll section
 function ScrollSection({ title, icon, movies, loading, showRank = false, rightContent, navigate }) {
@@ -171,12 +184,12 @@ function ScrollSection({ title, icon, movies, loading, showRank = false, rightCo
           {loading
             ? <SkeletonRow count={6} />
             : movies.length === 0
-            ? (
-              <div style={{ padding: "24px", color: "var(--muted)", fontSize: 14 }}>
-                No movies found for this selection
-              </div>
-            )
-            :movies.map((m, i) => ( <AfMovieCard key={m.tmdbId} movie={m} rank={showRank ? i + 1 : null} navigate={navigate} />))
+              ? (
+                <div style={{ padding: "24px", color: "var(--muted)", fontSize: 14 }}>
+                  No movies found for this selection
+                </div>
+              )
+              : movies.map((m, i) => (<AfMovieCard key={m.tmdbId} movie={m} rank={showRank ? i + 1 : null} navigate={navigate} />))
           }
         </div>
         <button className="af-scroll-btn right" onClick={() => scroll(1)}>
@@ -188,7 +201,7 @@ function ScrollSection({ title, icon, movies, loading, showRank = false, rightCo
 }
 
 // Navbar search bar — searches African movies, dropdown links out to TMDB
-function AfSearchBar({navigate}) {
+function AfSearchBar({ navigate }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -267,36 +280,49 @@ function AfSearchBar({navigate}) {
           ) : results.length === 0 ? (
             <div className="af-search-empty">No movies found</div>
           ) : (
-           results.map((m) => (
-  <div
-    key={m.id}
-    className="af-search-result"
-    onClick={() => {
-      clear();
-      navigate(`/movie/${m.id}`);
-    }}
-  >
-    {m.poster_path ? (
-      <img
-        src={`https://image.tmdb.org/t/p/w92${m.poster_path}`}
-        alt={m.title}
-      />
-    ) : (
-      <div className="af-search-result-fallback">
-        <Movie sx={{ fontSize: 16, opacity: 0.4 }} />
-      </div>
-    )}
-    <div className="af-search-result-info">
-      <div className="af-search-result-title">{m.title}</div>
-      <div className="af-search-result-year">
-        {m.release_date?.slice(0, 4) || ""}
-      </div>
-      {m.source === "tmdb" && (
-        <div className="af-search-result-badge">Pending review</div>
-      )}
-    </div>
-  </div>
-))
+            results.map((m) => (
+              <div
+                key={m.id}
+                className="af-search-result"
+                onClick={() => {
+                  clear();
+                  navigate(`/movie/${m.id}`);
+                }}
+              >
+                {m.poster_path ? (
+                  <img
+                    src={
+                      isFullUrl(m.poster_path)
+                        ? m.poster_path
+                        : `https://image.tmdb.org/t/p/w92${m.poster_path}`
+                    }
+                    alt={m.title}
+                  />
+                ) : (
+                  <div className="af-search-result-fallback">
+                    <Movie sx={{ fontSize: 16, opacity: 0.4 }} />
+                  </div>
+                )}
+                <div className="af-search-result-info">
+                  <div className="af-search-result-title">{m.title}</div>
+                  <div className="af-search-result-year">
+                    {m.release_date?.slice(0, 4) || ""}
+                  </div>
+                  {m.source === "tmdb" && (
+                    <div className="af-search-result-badge">Pending review</div>
+                  )}
+                  {m.is_community && (
+                    <div className="af-search-result-badge" style={{
+                      color: "var(--accent2)",
+                      background: "rgba(93,232,197,0.08)",
+                      border: "1px solid rgba(93,232,197,0.2)",
+                    }}>
+                      Community
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
           )}
         </div>
       )}
@@ -309,29 +335,29 @@ function AfricanPage() {
   useFonts();
   const navigate = useNavigate();
 
-  const [activeTab,    setActiveTab]    = useState("all");
-  const [period,       setPeriod]       = useState("year");
-  const [featured,     setFeatured]     = useState(null);
-  const [topRated,     setTopRated]     = useState([]);
-  const [latest,       setLatest]       = useState([]);
-  const [loadingTop,   setLoadingTop]   = useState(true);
-  const [loadingLatest,setLoadingLatest]= useState(true);
-  const [loadingMore,  setLoadingMore]  = useState(false);
-  const [latestPage,   setLatestPage]   = useState(1);
-  const [hasMoreLatest,setHasMoreLatest]= useState(true);
-  const [classics,    setClassics]    = useState([]);
-const [spotlights,  setSpotlights]  = useState([]);
-const [loadingClassics,   setLoadingClassics]   = useState(true);
-const [loadingSpotlights, setLoadingSpotlights] = useState(true);
-//auth role
+  const [activeTab, setActiveTab] = useState("all");
+  const [period, setPeriod] = useState("year");
+  const [featured, setFeatured] = useState(null);
+  const [topRated, setTopRated] = useState([]);
+  const [latest, setLatest] = useState([]);
+  const [loadingTop, setLoadingTop] = useState(true);
+  const [loadingLatest, setLoadingLatest] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [latestPage, setLatestPage] = useState(1);
+  const [hasMoreLatest, setHasMoreLatest] = useState(true);
+  const [classics, setClassics] = useState([]);
+  const [spotlights, setSpotlights] = useState([]);
+  const [loadingClassics, setLoadingClassics] = useState(true);
+  const [loadingSpotlights, setLoadingSpotlights] = useState(true);
+  //auth role
   const [role, setRole] = useState(null);
 
   // Logged-in user info for navbar
   const [currentUser, setCurrentUser] = useState(null);
-  const [email,       setEmail]       = useState("");
-  const [username, setUsername]= useState("")
-  const [profilePic,  setProfilePic]  = useState("");
-  const [initial,     setInitial]     = useState("U");
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("")
+  const [profilePic, setProfilePic] = useState("");
+  const [initial, setInitial] = useState("U");
   const [menuAnchor, setMenuAnchor] = useState(null);
   const menuOpen = Boolean(menuAnchor);
 
@@ -340,55 +366,55 @@ const [loadingSpotlights, setLoadingSpotlights] = useState(true);
 
   const [featuredTrailerOpen, setFeaturedTrailerOpen] = useState(false);
 
-useEffect(() => {
-  // Handle OAuth redirect — token arrives via URL query param
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlToken = urlParams.get("token");
-  if (urlToken) {
-    localStorage.setItem("token", urlToken);
-    // Clean the URL so the token isn't sitting in browser history/address bar
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
+  useEffect(() => {
+    // Handle OAuth redirect — token arrives via URL query param
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get("token");
+    if (urlToken) {
+      localStorage.setItem("token", urlToken);
+      // Clean the URL so the token isn't sitting in browser history/address bar
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
 
-  const token = localStorage.getItem("token");
-  if (!token) {
-    setIsLoggedIn(false);
-    return;
-  }
-
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    if (payload.exp * 1000 < Date.now()) {
-      localStorage.removeItem("token");
+    const token = localStorage.getItem("token");
+    if (!token) {
       setIsLoggedIn(false);
       return;
     }
 
-    setIsLoggedIn(true);
-    setRole(payload.role ?? null);   
-
-  } catch {
-    setIsLoggedIn(false);
-    return;
-  }
-  
-  // Load current user for navbar
-  (async () => {
     try {
-      const res = await apiFetch("/me");
-      if (!res.ok) throw new Error();
-      const d = await res.json();
-      setCurrentUser(d);
-      setProfilePic(d?.profile_pic ?? "");
-      const displayName = d?.username || (d?.email ? d.email.split("@")[0] : "user");
-      setEmail(displayName);
-      setInitial(displayName.charAt(0).toUpperCase());
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      if (payload.exp * 1000 < Date.now()) {
+        localStorage.removeItem("token");
+        setIsLoggedIn(false);
+        return;
+      }
+
+      setIsLoggedIn(true);
+      setRole(payload.role ?? null);
+
     } catch {
-      setEmail("user");
-      setInitial("U");
+      setIsLoggedIn(false);
+      return;
     }
-  })();
-}, []);
+
+    // Load current user for navbar
+    (async () => {
+      try {
+        const res = await apiFetch("/me");
+        if (!res.ok) throw new Error();
+        const d = await res.json();
+        setCurrentUser(d);
+        setProfilePic(d?.profile_pic ?? "");
+        const displayName = d?.username || (d?.email ? d.email.split("@")[0] : "user");
+        setEmail(displayName);
+        setInitial(displayName.charAt(0).toUpperCase());
+      } catch {
+        setEmail("user");
+        setInitial("U");
+      }
+    })();
+  }, []);
 
   function handleLogout() {
     localStorage.removeItem("token");
@@ -396,19 +422,19 @@ useEffect(() => {
   }
 
   function handleMenuOpen(e) {
-  setMenuAnchor(e.currentTarget);
-}
+    setMenuAnchor(e.currentTarget);
+  }
   function handleMenuClose() {
-  setMenuAnchor(null);
-}
+    setMenuAnchor(null);
+  }
 
   // Load featured once
-useEffect(() => {
-  fetch(`${import.meta.env.VITE_API_URL}/african/featured`)
-    .then(r => r.json())
-    .then(data => setFeatured(data))
-    .catch(() => setFeatured(null));
-}, []);
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL}/african/featured`)
+      .then(r => r.json())
+      .then(data => setFeatured(data))
+      .catch(() => setFeatured(null));
+  }, []);
 
   // Load top rated when tab or period changes
   useEffect(() => {
@@ -421,75 +447,75 @@ useEffect(() => {
     setHasMoreLatest(true);
     loadLatest(1, false);
   }, [activeTab]);
-// Load classics when tab changes
+  // Load classics when tab changes
   useEffect(() => {
-  loadClassics();
-}, [activeTab]);
-// Load spotlights once
-useEffect(() => {
-  loadSpotlights();
-}, []);
+    loadClassics();
+  }, [activeTab]);
+  // Load spotlights once
+  useEffect(() => {
+    loadSpotlights();
+  }, []);
 
-// load top rated movies from database
-async function loadTopRated() {
-  setLoadingTop(true);
-  try {
-    const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/african/top-rated?tab=${activeTab}&period=${period}`
-    );
-    const data = await res.json();
-    setTopRated(data.movies || []);
-  } catch { setTopRated([]); }
-  finally { setLoadingTop(false); }
-}
-//load latest movies from database
-  async function loadLatest(page = 1, append = false) {
-  if (page === 1) setLoadingLatest(true);
-  else setLoadingMore(true);
-  try {
-    const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/african/latest?tab=${activeTab}&page=${page}` 
-    );
-     console.log("API URL:", import.meta.env.VITE_API_URL); // Debugging line to check the API URL
-    const data = await res.json();
-    const movies = data.movies || [];
-    if (append) {
-      setLatest(prev => [...prev, ...movies]);
-    } else {
-      setLatest(movies);
-    }
-    setHasMoreLatest(page < (data.total_pages || 1));
-  } catch {
-    if (!append) setLatest([]);
-  } finally {
-    setLoadingLatest(false);
-    setLoadingMore(false);
+  // load top rated movies from database
+  async function loadTopRated() {
+    setLoadingTop(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/african/top-rated?tab=${activeTab}&period=${period}`
+      );
+      const data = await res.json();
+      setTopRated(data.movies || []);
+    } catch { setTopRated([]); }
+    finally { setLoadingTop(false); }
   }
-}
-// load classics movies from database
-async function loadClassics() {
-  setLoadingClassics(true);
-  try {
-    const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/african/classics?tab=${activeTab}`
-    );
-    const data = await res.json();
-    setClassics(data.movies || []);
-  } catch { setClassics([]); }
-  finally { setLoadingClassics(false); }
-}
-// load spotlights movies from database
-async function loadSpotlights() {
-  setLoadingSpotlights(true);
-  try {
-    const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/african/spotlights`
-    );
-    const data = await res.json();
-    setSpotlights(data.spotlights || []);
-  } catch { setSpotlights([]); }
-  finally { setLoadingSpotlights(false); }
-}
+  //load latest movies from database
+  async function loadLatest(page = 1, append = false) {
+    if (page === 1) setLoadingLatest(true);
+    else setLoadingMore(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/african/latest?tab=${activeTab}&page=${page}`
+      );
+      console.log("API URL:", import.meta.env.VITE_API_URL); // Debugging line to check the API URL
+      const data = await res.json();
+      const movies = data.movies || [];
+      if (append) {
+        setLatest(prev => [...prev, ...movies]);
+      } else {
+        setLatest(movies);
+      }
+      setHasMoreLatest(page < (data.total_pages || 1));
+    } catch {
+      if (!append) setLatest([]);
+    } finally {
+      setLoadingLatest(false);
+      setLoadingMore(false);
+    }
+  }
+  // load classics movies from database
+  async function loadClassics() {
+    setLoadingClassics(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/african/classics?tab=${activeTab}`
+      );
+      const data = await res.json();
+      setClassics(data.movies || []);
+    } catch { setClassics([]); }
+    finally { setLoadingClassics(false); }
+  }
+  // load spotlights movies from database
+  async function loadSpotlights() {
+    setLoadingSpotlights(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/african/spotlights`
+      );
+      const data = await res.json();
+      setSpotlights(data.spotlights || []);
+    } catch { setSpotlights([]); }
+    finally { setLoadingSpotlights(false); }
+  }
   function handleLoadMore() {
     const next = latestPage + 1;
     setLatestPage(next);
@@ -505,273 +531,273 @@ async function loadSpotlights() {
       <div className="af-page">
 
         {/* ── NAV ── */}
-<nav className="af-nav">
-  <Toolbar
-    sx={{
-      px: { xs: 2, md: 4 },
-      minHeight: "68px !important",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: 2,
-    }}
-  >
-    {/* LEFT — Logo */}
-    <Box
-      className="af-logo"
-      onClick={() => navigate("/")}
-      sx={{ flexShrink: 0, cursor: "pointer" }}
-    >
-      <div className="af-logo-icon">
-        <Public sx={{ fontSize: 18 }} />
-      </div>
-      AFRICAN CINEMA
-    </Box>
+        <nav className="af-nav">
+          <Toolbar
+            sx={{
+              px: { xs: 2, md: 4 },
+              minHeight: "68px !important",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
+            }}
+          >
+            {/* LEFT — Logo */}
+            <Box
+              className="af-logo"
+              onClick={() => navigate("/")}
+              sx={{ flexShrink: 0, cursor: "pointer" }}
+            >
+              <div className="af-logo-icon">
+                <Public sx={{ fontSize: 18 }} />
+              </div>
+              AFRICAN CINEMA
+            </Box>
 
-    {/* CENTER — Search + Submit */}
-    <Box
-      sx={{
-        flex: 1,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        gap: 2,
-        px: 4,
-      }}
-    >
-      <AfSearchBar navigate={navigate}/>
+            {/* CENTER — Search + Submit */}
+            <Box
+              sx={{
+                flex: 1,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 2,
+                px: 4,
+              }}
+            >
+              <AfSearchBar navigate={navigate} />
 
-      <Button
-        onClick={() => navigate("/submit")}
-        sx={{
-          background: "rgba(93,232,197,0.08)",
-          border: "1px solid rgba(93,232,197,0.2)",
-          borderRadius: "10px",
-          color: "var(--accent2)",
-          fontFamily: "var(--font-body)",
-          fontWeight: 600,
-          fontSize: 12,
-          textTransform: "none",
-          padding: "5px 14px",
-          whiteSpace: "nowrap",
-          transition: "all 0.2s",
-          "&:hover": {
-            background: "rgba(93,232,197,0.15)",
-            borderColor: "rgba(93,232,197,0.4)",
-          },
-        }}
-      >
-        + Submit a Film
-      </Button>
-     
-    </Box>
+              <Button
+                onClick={() => navigate("/submit")}
+                sx={{
+                  background: "rgba(93,232,197,0.08)",
+                  border: "1px solid rgba(93,232,197,0.2)",
+                  borderRadius: "10px",
+                  color: "var(--accent2)",
+                  fontFamily: "var(--font-body)",
+                  fontWeight: 600,
+                  fontSize: 12,
+                  textTransform: "none",
+                  padding: "5px 14px",
+                  whiteSpace: "nowrap",
+                  transition: "all 0.2s",
+                  "&:hover": {
+                    background: "rgba(93,232,197,0.15)",
+                    borderColor: "rgba(93,232,197,0.4)",
+                  },
+                }}
+              >
+                + Submit a Film
+              </Button>
 
-    {/* RIGHT — auth-aware */}
-<Box
-  className="af-nav-actions"
-  sx={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}
->
+            </Box>
 
-  
-  {isLoggedIn ? (
-    <>
-    {/* Admin button — only visible to admins */}
-    {role === "admin" && (
-      <Button
-        onClick={() => navigate("/admin")}
-        sx={{
-          background: "rgba(255,100,100,0.08)",
-          border: "1px solid rgba(255,100,100,0.2)",
-          borderRadius: "10px",
-          color: "#ff6b6b",
-          fontFamily: "var(--font-body)",
-          fontWeight: 600,
-          fontSize: 12,
-          textTransform: "none",
-          padding: "5px 14px",
-          transition: "all 0.2s",
-          "&:hover": {
-            background: "rgba(255,100,100,0.15)",
-            borderColor: "rgba(255,100,100,0.4)",
-          },
-        }}
-      >
-        Admin
-      </Button>
-    )}
-   <div className="af-profile-trigger" onClick={handleMenuOpen}>
-  {profilePic ? (
-    <Avatar src={profilePic} sx={{ width: 38, height: 38 }} />
-  ) : (
-    <div className="nav-avatar-initials">{initial}</div>
-  )}
-  <Typography className="af-hello-text">
-    Hello, {email}!
-  </Typography>
-</div>
+            {/* RIGHT — auth-aware */}
+            <Box
+              className="af-nav-actions"
+              sx={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}
+            >
 
-<Menu
-  anchorEl={menuAnchor}
-  open={menuOpen}
-  onClose={handleMenuClose}
-  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-  transformOrigin={{ vertical: "top", horizontal: "right" }}
-  slotProps={{
-    paper: {
-      sx: {
-        background: "var(--card)",
-        border: "1px solid var(--border)",
-        borderRadius: "12px",
-        mt: 1,
-        minWidth: 180,
-        boxShadow: "0 12px 32px rgba(0,0,0,0.4)",
-      },
-    },
-  }}
->
-  <MenuItem
-    onClick={() => { handleMenuClose(); navigate(`/profile/${currentUser?.username}`); }}
-    sx={{
-      fontFamily: "var(--font-body)", fontSize: 14, color: "#e0e0e8",
-      gap: 1.2, py: 1.2, px: 2,
-      "&:hover": { background: "rgba(255,255,255,0.05)" },
-    }}
-  >
-    <Person sx={{ fontSize: 18, color: "var(--accent2)" }} /> Profile
-  </MenuItem>
 
-  <MenuItem
-    onClick={() => { handleMenuClose(); navigate("/settings"); }}
-    sx={{
-      fontFamily: "var(--font-body)", fontSize: 14, color: "#e0e0e8",
-      gap: 1.2, py: 1.2, px: 2,
-      "&:hover": { background: "rgba(255,255,255,0.05)" },
-    }}
-  >
-    <Settings sx={{ fontSize: 18, color: "var(--accent2)" }} /> Settings
-  </MenuItem>
-</Menu>
+              {isLoggedIn ? (
+                <>
+                  {/* Admin button — only visible to admins */}
+                  {role === "admin" && (
+                    <Button
+                      onClick={() => navigate("/admin")}
+                      sx={{
+                        background: "rgba(255,100,100,0.08)",
+                        border: "1px solid rgba(255,100,100,0.2)",
+                        borderRadius: "10px",
+                        color: "#ff6b6b",
+                        fontFamily: "var(--font-body)",
+                        fontWeight: 600,
+                        fontSize: 12,
+                        textTransform: "none",
+                        padding: "5px 14px",
+                        transition: "all 0.2s",
+                        "&:hover": {
+                          background: "rgba(255,100,100,0.15)",
+                          borderColor: "rgba(255,100,100,0.4)",
+                        },
+                      }}
+                    >
+                      Admin
+                    </Button>
+                  )}
+                  <div className="af-profile-trigger" onClick={handleMenuOpen}>
+                    {profilePic ? (
+                      <Avatar src={profilePic} sx={{ width: 38, height: 38 }} />
+                    ) : (
+                      <div className="nav-avatar-initials">{initial}</div>
+                    )}
+                    <Typography className="af-hello-text">
+                      Hello, {email}!
+                    </Typography>
+                  </div>
 
-      <Tooltip title="Log out">
-        <Button
-          className="logout-btn"
-          size="small"
-          startIcon={<Logout sx={{ fontSize: 16 }} />}
-          onClick={handleLogout}
-        >
-          Log out
-        </Button>
-      </Tooltip>
-    </>
-  ) : (
-    <>
-      <Button
-        onClick={() => navigate("/login")}
-        sx={{
-          background: "none",
-          border: "1px solid var(--border)",
-          borderRadius: "10px",
-          color: "#e0e0e8",
-          fontFamily: "var(--font-body)",
-          fontWeight: 500,
-          fontSize: 13,
-          textTransform: "none",
-          padding: "5px 16px",
-          transition: "all 0.2s",
-          "&:hover": {
-            background: "rgba(255,255,255,0.05)",
-            borderColor: "rgba(255,255,255,0.18)",
-          },
-        }}
-      >
-        Log in
-      </Button>
+                  <Menu
+                    anchorEl={menuAnchor}
+                    open={menuOpen}
+                    onClose={handleMenuClose}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                    transformOrigin={{ vertical: "top", horizontal: "right" }}
+                    slotProps={{
+                      paper: {
+                        sx: {
+                          background: "var(--card)",
+                          border: "1px solid var(--border)",
+                          borderRadius: "12px",
+                          mt: 1,
+                          minWidth: 180,
+                          boxShadow: "0 12px 32px rgba(0,0,0,0.4)",
+                        },
+                      },
+                    }}
+                  >
+                    <MenuItem
+                      onClick={() => { handleMenuClose(); navigate(`/profile/${currentUser?.username}`); }}
+                      sx={{
+                        fontFamily: "var(--font-body)", fontSize: 14, color: "#e0e0e8",
+                        gap: 1.2, py: 1.2, px: 2,
+                        "&:hover": { background: "rgba(255,255,255,0.05)" },
+                      }}
+                    >
+                      <Person sx={{ fontSize: 18, color: "var(--accent2)" }} /> Profile
+                    </MenuItem>
 
-      <Button
-        onClick={() => navigate("/register")}
-        sx={{
-          background: "var(--accent)",
-          borderRadius: "10px",
-          color: "var(--ink)",
-          fontFamily: "var(--font-body)",
-          fontWeight: 700,
-          fontSize: 13,
-          textTransform: "none",
-          padding: "5px 16px",
-          transition: "all 0.2s",
-          "&:hover": { background: "#f0d050" },
-        }}
-      >
-        Register
-      </Button>
-    </>
-  )}
-</Box>
-  </Toolbar>
-</nav>
+                    <MenuItem
+                      onClick={() => { handleMenuClose(); navigate("/settings"); }}
+                      sx={{
+                        fontFamily: "var(--font-body)", fontSize: 14, color: "#e0e0e8",
+                        gap: 1.2, py: 1.2, px: 2,
+                        "&:hover": { background: "rgba(255,255,255,0.05)" },
+                      }}
+                    >
+                      <Settings sx={{ fontSize: 18, color: "var(--accent2)" }} /> Settings
+                    </MenuItem>
+                  </Menu>
 
-    
+                  <Tooltip title="Log out">
+                    <Button
+                      className="logout-btn"
+                      size="small"
+                      startIcon={<Logout sx={{ fontSize: 16 }} />}
+                      onClick={handleLogout}
+                    >
+                      Log out
+                    </Button>
+                  </Tooltip>
+                </>
+              ) : (
+                <>
+                  <Button
+                    onClick={() => navigate("/login")}
+                    sx={{
+                      background: "none",
+                      border: "1px solid var(--border)",
+                      borderRadius: "10px",
+                      color: "#e0e0e8",
+                      fontFamily: "var(--font-body)",
+                      fontWeight: 500,
+                      fontSize: 13,
+                      textTransform: "none",
+                      padding: "5px 16px",
+                      transition: "all 0.2s",
+                      "&:hover": {
+                        background: "rgba(255,255,255,0.05)",
+                        borderColor: "rgba(255,255,255,0.18)",
+                      },
+                    }}
+                  >
+                    Log in
+                  </Button>
+
+                  <Button
+                    onClick={() => navigate("/register")}
+                    sx={{
+                      background: "var(--accent)",
+                      borderRadius: "10px",
+                      color: "var(--ink)",
+                      fontFamily: "var(--font-body)",
+                      fontWeight: 700,
+                      fontSize: 13,
+                      textTransform: "none",
+                      padding: "5px 16px",
+                      transition: "all 0.2s",
+                      "&:hover": { background: "#f0d050" },
+                    }}
+                  >
+                    Register
+                  </Button>
+                </>
+              )}
+            </Box>
+          </Toolbar>
+        </nav>
+
+
         {/* ── HERO ── */}
-<div className="af-hero">
-  {featured?.backdrop_path ? (
-    <div
-      className="af-hero-bg"
-      style={{ backgroundImage: `url(https://image.tmdb.org/t/p/original${featured.backdrop_path})` }}
-    />
-  ) : (
-    <div className="af-hero-fallback">
-      <Public sx={{ fontSize: 80, color: "rgba(232,197,71,0.1)" }} />
-    </div>
-  )}
-  <div className="af-hero-content">
-    <div className="af-hero-eyebrow">FEATURED FILM</div>
-    {featured ? (
-      <>
-        <Typography className="af-hero-title">{featured.title}</Typography>
-        <div className="af-hero-meta">
-          {featured.vote_average > 0 && (
-            <span className="af-hero-chip af-hero-chip-rating">
-              ⭐ {parseFloat(featured.vote_average).toFixed(1)} TMDB
-            </span>
+        <div className="af-hero">
+          {featured?.backdrop_path ? (
+            <div
+              className="af-hero-bg"
+              style={{ backgroundImage: `url(https://image.tmdb.org/t/p/original${featured.backdrop_path})` }}
+            />
+          ) : (
+            <div className="af-hero-fallback">
+              <Public sx={{ fontSize: 80, color: "rgba(232,197,71,0.1)" }} />
+            </div>
           )}
-          {featured.tab_region && (
-            <span className="af-hero-chip af-hero-chip-country">
-              {COUNTRY_NAMES[featured.tab_region] || featured.tab_region}
-            </span>
-          )}
-          {featured.release_date && (
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
-              {featured.release_date.slice(0, 4)}
-            </span>
-          )}
+          <div className="af-hero-content">
+            <div className="af-hero-eyebrow">FEATURED FILM</div>
+            {featured ? (
+              <>
+                <Typography className="af-hero-title">{featured.title}</Typography>
+                <div className="af-hero-meta">
+                  {featured.vote_average > 0 && (
+                    <span className="af-hero-chip af-hero-chip-rating">
+                      ⭐ {parseFloat(featured.vote_average).toFixed(1)} TMDB
+                    </span>
+                  )}
+                  {featured.tab_region && (
+                    <span className="af-hero-chip af-hero-chip-country">
+                      {COUNTRY_NAMES[featured.tab_region] || featured.tab_region}
+                    </span>
+                  )}
+                  {featured.release_date && (
+                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
+                      {featured.release_date.slice(0, 4)}
+                    </span>
+                  )}
+                </div>
+                {featured?.trailer_key && (
+                  <Button
+                    className="af-hero-play-btn"
+                    startIcon={<PlayArrow />}
+                    onClick={() => setFeaturedTrailerOpen(true)}
+                  >
+                    Watch Trailer
+                  </Button>
+                )}
+              </>
+            ) : (
+              <>
+                <Typography className="af-hero-title">AFRICAN CINEMA</Typography>
+                <Typography sx={{ fontSize: 15, color: "rgba(255,255,255,0.5)", mb: 2 }}>
+                  Discover the best of African film
+                </Typography>
+              </>
+            )}
+          </div>
         </div>
-{featured?.trailer_key && (
-  <Button
-    className="af-hero-play-btn"
-    startIcon={<PlayArrow />}
-    onClick={() => setFeaturedTrailerOpen(true)}
-  >
-    Watch Trailer
-  </Button>
-)}
-      </>
-    ) : (
-      <>
-        <Typography className="af-hero-title">AFRICAN CINEMA</Typography>
-        <Typography sx={{ fontSize: 15, color: "rgba(255,255,255,0.5)", mb: 2 }}>
-          Discover the best of African film
-        </Typography>
-      </>
-    )}
-  </div>
-</div>
-{/* Trailer modal for featured film */}
-{featuredTrailerOpen && featured?.trailer_key && (
-  <TrailerModal
-    trailerKey={featured.trailer_key}
-    onClose={() => setFeaturedTrailerOpen(false)}
-  />
-)}
+        {/* Trailer modal for featured film */}
+        {featuredTrailerOpen && featured?.trailer_key && (
+          <TrailerModal
+            trailerKey={featured.trailer_key}
+            onClose={() => setFeaturedTrailerOpen(false)}
+          />
+        )}
 
         {/* ── BODY ── */}
         <div className="af-body">
@@ -813,29 +839,29 @@ async function loadSpotlights() {
           />
 
           {/* ── AFRICAN CLASSICS ── */}
-{(classics.length > 0 || loadingClassics) && (
-  <ScrollSection
-    title="AFRICAN CLASSICS"
-    icon={<AutoAwesome sx={{ fontSize: 20 }} />}
-    movies={classics}
-    loading={loadingClassics}
-    showRank={false}
-    navigate={navigate}
-  />
-)}
+          {(classics.length > 0 || loadingClassics) && (
+            <ScrollSection
+              title="AFRICAN CLASSICS"
+              icon={<AutoAwesome sx={{ fontSize: 20 }} />}
+              movies={classics}
+              loading={loadingClassics}
+              showRank={false}
+              navigate={navigate}
+            />
+          )}
 
-{/* ── COUNTRY SPOTLIGHTS — only on All Africa tab ── */}
-{activeTab === "all" && spotlights.map(spotlight => (
-  <ScrollSection
-    key={spotlight.key}
-    title={spotlight.label.toUpperCase()}
-    icon={<Language sx={{ fontSize: 20 }} />}
-    movies={spotlight.movies}
-    loading={loadingSpotlights}
-    showRank={false}
-    navigate={navigate}
-  />
-))}
+          {/* ── COUNTRY SPOTLIGHTS — only on All Africa tab ── */}
+          {activeTab === "all" && spotlights.map(spotlight => (
+            <ScrollSection
+              key={spotlight.key}
+              title={spotlight.label.toUpperCase()}
+              icon={<Language sx={{ fontSize: 20 }} />}
+              movies={spotlight.movies}
+              loading={loadingSpotlights}
+              showRank={false}
+              navigate={navigate}
+            />
+          ))}
 
           {/* Latest Releases */}
           <div className="af-section fade-up">

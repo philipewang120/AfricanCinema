@@ -40,11 +40,77 @@ const COUNTRY_NAMES = {
   TN: "Tunisia", SN: "Senegal", CI: "Ivory Coast",
 };
 
+// PENDING MOVIE CARD
+function PendingMovieCard({ movie, onApprove, onReject, processing }) {
+  return (
+    <div className="adm-sub-card fade-up">
+      <div className="adm-sub-header">
+        {movie.poster_path ? (
+          <img
+            src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`}
+            alt={movie.title}
+            className="adm-sub-poster"
+          />
+        ) : (
+          <div className="adm-sub-poster">
+            <Movie sx={{ fontSize: 20, color: "var(--muted)" }} />
+          </div>
+        )}
+        <div className="adm-sub-info">
+          <div className="adm-sub-title">{movie.title}</div>
+          <div className="adm-sub-meta">
+            <span>{COUNTRY_NAMES[movie.tab_region] || movie.tab_region}</span>
+            {movie.release_year && <> · <span>{movie.release_year}</span></>}
+            {movie.director && <> · Dir. <span>{movie.director}</span></>}
+            {movie.vote_average > 0 && <> · <span>⭐ {parseFloat(movie.vote_average).toFixed(1)}</span></>}
+          </div>
+          {movie.genres?.length > 0 && (
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
+              {movie.genres.map(g => (
+                <span key={g} style={{
+                  fontSize: 10, padding: "2px 8px", borderRadius: 20,
+                  background: "var(--raised)", color: "var(--muted)",
+                  border: "1px solid var(--border)"
+                }}>{g}</span>
+              ))}
+            </div>
+          )}
+          <div style={{ marginTop: 6, fontSize: 11, color: "var(--muted)" }}>
+            Source: {movie.source} · Confidence: {movie.confidence_score}
+            {movie.matched_director && <> · via {movie.matched_director}</>}
+          </div>
+        </div>
+        <span className="adm-status-badge badge-pending">
+          score {movie.confidence_score}
+        </span>
+      </div>
+
+      <div className="adm-sub-actions">
+        <Button
+          className="adm-approve-btn"
+          startIcon={<CheckCircle sx={{ fontSize: 16 }} />}
+          onClick={() => onApprove(movie.id)}
+          disabled={!!processing}
+        >
+          {processing === movie.id ? <CircularProgress size={14} sx={{ color: "var(--ink)" }} /> : "Approve"}
+        </Button>
+        <Button
+          className="adm-reject-btn"
+          startIcon={<Cancel sx={{ fontSize: 16 }} />}
+          onClick={() => onReject(movie.id)}
+          disabled={!!processing}
+        >
+          Reject
+        </Button>
+      </div>
+    </div>
+  );
+}
 // ── SUBMISSION CARD ───────────────────────────────────────
 function SubmissionCard({ sub, onApprove, onReject, onDelete, processing }) {
-  const [notes,      setNotes]      = useState("");
-  const [showNotes,  setShowNotes]  = useState(false);
-  const [action,     setAction]     = useState(null); // 'approve' | 'reject'
+  const [notes, setNotes] = useState("");
+  const [showNotes, setShowNotes] = useState(false);
+  const [action, setAction] = useState(null); // 'approve' | 'reject'
 
   function handleAction(type) {
     setAction(type);
@@ -229,17 +295,19 @@ function AdminDashboard() {
   useFonts();
   const navigate = useNavigate();
 
-  const [authorized,   setAuthorized]   = useState(null);
-  const [stats,        setStats]        = useState(null);
-  const [counts,       setCounts]       = useState({ pending: 0, approved: 0, rejected: 0 });
-  const [submissions,  setSubmissions]  = useState([]);
-  const [movies,       setMovies]       = useState([]);
-  const [activeTab,    setActiveTab]    = useState(0);
-  const [subFilter,    setSubFilter]    = useState("pending");
-  const [loading,      setLoading]      = useState(true);
-  const [processing,   setProcessing]   = useState(null);
-  const [page,         setPage]         = useState(0);
-  const [total,        setTotal]        = useState(0);
+  const [authorized, setAuthorized] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [counts, setCounts] = useState({ pending: 0, approved: 0, rejected: 0 });
+  const [submissions, setSubmissions] = useState([]);
+  const [movies, setMovies] = useState([]);
+  const [activeTab, setActiveTab] = useState(0);
+  const [subFilter, setSubFilter] = useState("pending");
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(null);
+  const [page, setPage] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [pendingMovies, setPendingMovies] = useState([]);
+  const [pendingCount, setPendingCount] = useState(0);
 
   const token = getToken();
 
@@ -266,7 +334,8 @@ function AdminDashboard() {
   useEffect(() => {
     if (authorized) {
       if (activeTab === 0) loadSubmissions(subFilter, 0);
-      if (activeTab === 1) loadMovies(0);
+      if (activeTab === 1) loadPendingMovies(0);
+      if (activeTab === 2) loadMovies(0);
     }
   }, [authorized, activeTab, subFilter]);
 
@@ -275,7 +344,7 @@ function AdminDashboard() {
       const res = await apiFetch("/admin/stats");
       const data = await res?.json();
       if (data) setStats(data);
-    } catch {}
+    } catch { }
   }
 
   async function loadCounts() {
@@ -283,7 +352,7 @@ function AdminDashboard() {
       const res = await apiFetch("/admin/submissions/counts");
       const data = await res?.json();
       if (data) setCounts(data);
-    } catch {}
+    } catch { }
   }
 
   async function loadSubmissions(status, pageNum) {
@@ -301,7 +370,7 @@ function AdminDashboard() {
   async function loadMovies(pageNum) {
     setLoading(true);
     try {
-      const res = await apiFetch(`/admin/african-movies?page=${pageNum}`);
+      const res = await apiFetch(`/admin/african-movies?page=${pageNum}&status=approved`);
       const data = await res?.json();
       setMovies(data?.movies || []);
       setTotal(data?.total || 0);
@@ -310,6 +379,51 @@ function AdminDashboard() {
     finally { setLoading(false); }
   }
 
+  async function loadPendingMovies(pageNum) {
+    setLoading(true);
+    try {
+      const res = await apiFetch(`/admin/pending-movies?page=${pageNum}`);
+      const data = await res?.json();
+      setPendingMovies(data?.movies || []);
+      setTotal(data?.total || 0);
+      setPage(pageNum);
+    } catch { setPendingMovies([]); }
+    finally { setLoading(false); }
+  }
+
+  async function loadPendingMoviesCount() {
+    try {
+      const res = await apiFetch("/admin/pending-movies/count");
+      const data = await res?.json();
+      if (data) setPendingCount(data);
+    } catch { }
+  }
+
+  async function handleApprovePendingMovie(id) {
+    setProcessing(id);
+    try {
+      const res = await apiFetch(`/admin/pending-movies/${id}/approve`, { method: "PUT" });
+      if (res?.ok) {
+        setPendingMovies(p => p.filter(m => m.id !== id));
+        setTotal(t => t - 1);
+        loadStats();
+        loadPendingMoviesCount();
+      }
+    } catch { } finally { setProcessing(null); }
+  }
+
+  async function handleRejectPendingMovie(id) {
+    setProcessing(id);
+    try {
+      const res = await apiFetch(`/admin/pending-movies/${id}/reject`, { method: "PUT" });
+      if (res?.ok) {
+        setPendingMovies(p => p.filter(m => m.id !== id));
+        setTotal(t => t - 1);
+        loadPendingMoviesCount();
+        loadStats();
+      }
+    } catch { } finally { setProcessing(null); }
+  }
   async function handleApprove(id, notes) {
     setProcessing(id);
     try {
@@ -322,7 +436,7 @@ function AdminDashboard() {
         setCounts(p => ({ ...p, pending: p.pending - 1, approved: p.approved + 1 }));
         loadStats();
       }
-    } catch {} finally { setProcessing(null); }
+    } catch { } finally { setProcessing(null); }
   }
 
   async function handleReject(id, notes) {
@@ -335,8 +449,9 @@ function AdminDashboard() {
       if (res?.ok) {
         setSubmissions(p => p.filter(s => s.id !== id));
         setCounts(p => ({ ...p, pending: p.pending - 1, rejected: p.rejected + 1 }));
+        loadStats();
       }
-    } catch {} finally { setProcessing(null); }
+    } catch { } finally { setProcessing(null); }
   }
 
   async function handleDeleteSubmission(id) {
@@ -345,7 +460,8 @@ function AdminDashboard() {
       await apiFetch(`/admin/submissions/${id}`, { method: "DELETE" });
       setSubmissions(p => p.filter(s => s.id !== id));
       setTotal(t => t - 1);
-    } catch {}
+      loadStats();
+    } catch { }
   }
 
   async function handleDeleteMovie(id) {
@@ -355,13 +471,13 @@ function AdminDashboard() {
       setMovies(p => p.filter(m => m.id !== id));
       setTotal(t => t - 1);
       loadStats();
-    } catch {}
+    } catch { }
   }
 
   // Forbidden
   if (authorized === false) return (
     <>
-      
+
       <div className="adm-page">
         <div className="adm-forbidden">
           <Cancel sx={{ fontSize: 64, color: "#ff6b6b", opacity: 0.5 }} />
@@ -384,7 +500,7 @@ function AdminDashboard() {
 
   if (authorized === null) return (
     <>
-     
+
       <div className="adm-page" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
         <CircularProgress sx={{ color: "var(--accent)" }} />
       </div>
@@ -395,7 +511,7 @@ function AdminDashboard() {
 
   return (
     <>
-      
+
       <div className="adm-page">
 
         {/* NAV */}
@@ -423,9 +539,20 @@ function AdminDashboard() {
                 <div className="adm-stat-icon" style={{ background: "rgba(93,232,197,0.1)" }}>
                   <Public sx={{ fontSize: 20, color: "var(--accent2)" }} />
                 </div>
-                <div className="adm-stat-num">{stats.totalMovies}</div>
-                <div className="adm-stat-label">African Movies</div>
+                <div className="adm-stat-num">{stats.approvedMovies}</div>
+                <div className="adm-stat-label">Live African Movies</div>
               </div>
+
+              <div className="adm-stat-card">
+                <div className="adm-stat-icon" style={{ background: "rgba(232,197,71,0.1)" }}>
+                  <Pending sx={{ fontSize: 20, color: "var(--accent)" }} />
+                </div>
+                <div className="adm-stat-num" style={{ color: stats.pendingMovies > 0 ? "var(--accent)" : "#f0f0f5" }}>
+                  {stats.pendingMovies}
+                </div>
+                <div className="adm-stat-label">Pending Movies</div>
+              </div>
+
               <div className="adm-stat-card">
                 <div className="adm-stat-icon" style={{ background: "rgba(232,197,71,0.1)" }}>
                   <Pending sx={{ fontSize: 20, color: "var(--accent)" }} />
@@ -433,8 +560,9 @@ function AdminDashboard() {
                 <div className="adm-stat-num" style={{ color: counts.pending > 0 ? "var(--accent)" : "#f0f0f5" }}>
                   {counts.pending}
                 </div>
-                <div className="adm-stat-label">Pending Review</div>
+                <div className="adm-stat-label">Pending Submissions</div>
               </div>
+
               <div className="adm-stat-card">
                 <div className="adm-stat-icon" style={{ background: "rgba(93,232,197,0.1)" }}>
                   <Done sx={{ fontSize: 20, color: "var(--accent2)" }} />
@@ -442,13 +570,23 @@ function AdminDashboard() {
                 <div className="adm-stat-num">{stats.communityMovies}</div>
                 <div className="adm-stat-label">Community Films</div>
               </div>
+
               <div className="adm-stat-card">
-                <div className="adm-stat-icon" style={{ background: "rgba(255,107,107,0.1)" }}>
-                  <Cancel sx={{ fontSize: 20, color: "#ff6b6b" }} />
+                <div className="adm-stat-icon" style={{ background: "rgba(93,232,197,0.1)" }}>
+                  <Movie sx={{ fontSize: 20, color: "var(--accent2)" }} />
                 </div>
-                <div className="adm-stat-num">{counts.rejected}</div>
-                <div className="adm-stat-label">Rejected</div>
+                <div className="adm-stat-num">{stats.pipelineMovies}</div>
+                <div className="adm-stat-label">Pipeline-Sourced</div>
               </div>
+
+              <div className="adm-stat-card">
+                <div className="adm-stat-icon" style={{ background: "rgba(232,197,71,0.1)" }}>
+                  <Movie sx={{ fontSize: 20, color: "var(--accent)" }} />
+                </div>
+                <div className="adm-stat-num">{stats.adminCuratedMovies}</div>
+                <div className="adm-stat-label">Admin Curated</div>
+              </div>
+
               <div className="adm-stat-card">
                 <div className="adm-stat-icon" style={{ background: "rgba(232,197,71,0.1)" }}>
                   <People sx={{ fontSize: 20, color: "var(--accent)" }} />
@@ -456,6 +594,7 @@ function AdminDashboard() {
                 <div className="adm-stat-num">{stats.totalUsers}</div>
                 <div className="adm-stat-label">Total Users</div>
               </div>
+
               <div className="adm-stat-card">
                 <div className="adm-stat-icon" style={{ background: "rgba(93,232,197,0.1)" }}>
                   <Movie sx={{ fontSize: 20, color: "var(--accent2)" }} />
@@ -481,6 +620,7 @@ function AdminDashboard() {
               }}
             >
               <Tab label={`Submissions ${counts.pending > 0 ? `(${counts.pending} pending)` : ""}`} />
+              <Tab label={`Pending Movies ${stats?.pendingMovies > 0 ? `(${stats.pendingMovies})` : ""}`} />
               <Tab label="African Movies Database" />
             </Tabs>
           </div>
@@ -555,8 +695,53 @@ function AdminDashboard() {
             </>
           )}
 
-          {/* ── MOVIES DATABASE TAB ── */}
+          {/* ── PENDING MOVIES TAB (pipeline-sourced) ── */}
           {activeTab === 1 && (
+            <>
+              {loading ? (
+                <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+                  <CircularProgress sx={{ color: "var(--accent)" }} />
+                </Box>
+              ) : pendingMovies.length === 0 ? (
+                <div className="adm-empty">
+                  <Typography sx={{ fontFamily: "var(--font-display)", fontSize: 22, letterSpacing: 2, color: "var(--muted)" }}>
+                    NO PENDING MOVIES
+                  </Typography>
+                  <Typography sx={{ fontSize: 13, color: "var(--muted)", mt: 1 }}>
+                    All pipeline-sourced films have been reviewed
+                  </Typography>
+                </div>
+              ) : (
+                <>
+                  <Typography sx={{ fontSize: 13, color: "var(--muted)", mb: 2, fontFamily: "var(--font-body)" }}>
+                    {total} movies awaiting approval
+                  </Typography>
+                  {pendingMovies.map(m => (
+                    <PendingMovieCard
+                      key={m.id}
+                      movie={m}
+                      onApprove={handleApprovePendingMovie}
+                      onReject={handleRejectPendingMovie}
+                      processing={processing}
+                    />
+                  ))}
+
+                  {totalPages > 1 && (
+                    <div className="adm-pagination">
+                      <Button className="adm-page-btn" disabled={page === 0}
+                        onClick={() => loadPendingMovies(page - 1)}>← Prev</Button>
+                      <Button className="adm-page-btn active">{page + 1} / {totalPages}</Button>
+                      <Button className="adm-page-btn" disabled={page >= totalPages - 1}
+                        onClick={() => loadPendingMovies(page + 1)}>Next →</Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </>
+          )}
+
+          {/* ── MOVIES DATABASE TAB ── */}
+          {activeTab === 2 && (
             <>
               {loading ? (
                 <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>

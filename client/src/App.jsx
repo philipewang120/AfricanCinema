@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "react-error-boundary";
-import {ProtectedRoute, AdminRoute} from "./components/ProtectedRoute";
+import { ProtectedRoute, AdminRoute } from "./components/ProtectedRoute";
 
 import AfricanPage from "./pages/AfricanPage";
 import SubmitMoviePage from "./pages/SubmitMoviePage";
@@ -9,7 +9,8 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProfileSettings from "./pages/ProfileSettings";
 import ProfilePage from "./pages/ProfilePage";
-import MovieDetailPage from "./pages/MovieDetailPage";
+import MovieDetailPage from "./pages/MovieDetailPage"
+import ContactPage from "./pages/ContactPage"
 
 function App() {
   return (
@@ -17,20 +18,21 @@ function App() {
       <ErrorBoundary>
         <Routes>
           {/* Public */}
-          <Route path="/"                  element={<AfricanPage />} />
-          <Route path="/login"             element={<LoginPage />} />
-          <Route path="/register"          element={<RegisterPage />} />
+          <Route path="/" element={<AfricanPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
-          <Route path="/movie/:tmdbId"         element={<MovieDetailPage />} />
+          <Route path="/movie/:tmdbId" element={<MovieDetailPage />} />
+          <Route path="/contact" element={<ContactPage />} />
 
           {/* Protected */}
           <Route path="/submit"
-                element={<ProtectedRoute message="Login or register to submit a movie to the African Cinema Community database">
-      <SubmitMoviePage />
-    </ProtectedRoute>
-  }
-/>
-          <Route path="/admin"    element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            element={<ProtectedRoute message="Login or register to submit a movie to the African Cinema Community database">
+              <SubmitMoviePage />
+            </ProtectedRoute>
+            }
+          />
+          <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
         </Routes>
       </ErrorBoundary>

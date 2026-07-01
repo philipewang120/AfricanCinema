@@ -15,6 +15,12 @@ function useFonts() {
   }, []);
 }
 
+function resolveImageUrl(path, isFullUrl, size = "w342") {
+  if (!path) return null;
+  if (isFullUrl) return path;
+  return `https://image.tmdb.org/t/p/${size}${path}`;
+}
+
 // Reusable trailer modal — used here and can be imported by AfricanPage for featured film
 export function TrailerModal({ trailerKey, onClose }) {
   // Close on Escape key
@@ -53,8 +59,8 @@ function MovieDetailPage() {
   const { tmdbId } = useParams();
   const navigate = useNavigate();
 
-  const [movie,       setMovie]       = useState(null);
-  const [loading,     setLoading]     = useState(true);
+  const [movie, setMovie] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [trailerOpen, setTrailerOpen] = useState(false);
 
   useEffect(() => {
@@ -122,7 +128,13 @@ function MovieDetailPage() {
         {movie.backdrop_path ? (
           <div
             className="md-hero-bg"
-            style={{ backgroundImage: `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})` }}
+            style={{
+              backgroundImage: `url(${resolveImageUrl(
+                movie.backdrop_path,
+                movie.backdrop_is_full_url,
+                "original"
+              )})`
+            }}
           />
         ) : (
           <div className="md-hero-fallback" />
@@ -132,7 +144,7 @@ function MovieDetailPage() {
           <div className="md-poster-wrap">
             {movie.poster_path ? (
               <img
-                src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
+                src={resolveImageUrl(movie.poster_path, movie.poster_is_full_url, "w342")}
                 alt={movie.title}
                 className="md-poster"
               />
@@ -174,14 +186,25 @@ function MovieDetailPage() {
               </div>
             )}
 
-            {movie.trailerKey && (
+            {(movie.trailerKey || (movie.is_community && movie.trailer_url)) && (
               <Button
                 className="md-trailer-btn"
                 startIcon={<PlayArrow />}
-                onClick={() => setTrailerOpen(true)}
+                onClick={() => {
+                  if (movie.trailerKey) {
+                    setTrailerOpen(true);
+                  } else {
+                    window.open(movie.trailer_url, "_blank");
+                  }
+                }}
               >
                 Watch Trailer
               </Button>
+            )}
+            {movie.is_community && (
+              <div className="md-community-badge">
+                🎬 Community Submission
+              </div>
             )}
           </div>
         </div>

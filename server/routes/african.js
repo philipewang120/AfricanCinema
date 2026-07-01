@@ -4,93 +4,127 @@ import axios from "axios";
 
 import db from "../db.js";
 
-import { verifyToken,} from "../middleware/auth.js";
+import { verifyToken, } from "../middleware/auth.js";
 
-import { fetchAfricanMovies, getCountryCodes, } from "../helpers/africanHelpers.js";
+import cache from "../helpers/cache.js";
 
-import {AFRICAN_COUNTRIES_ARRAY,} from "../config/africanCountries.js";
+import { fetchAfricanMovies, getCountryCodes, getTopRatedMovies } from "../helpers/africanHelpers.js";
+import { isFullUrl } from "../helpers/imageHelpers.js";
+
 import pool from "../db.js";
+
 
 const router = express.Router();
 
 function getTabRegions(tab) {
   const TAB_MAP = {
-    all:  null, // no filter — all regions
-    NG:   ["NG"],
-    CM:   ["CM"],
-    GH:   ["GH"],
-    ZA:   ["ZA"],
+    all: null, // no filter — all regions
+    NG: ["NG"],
+    CM: ["CM"],
+    GH: ["GH"],
+    ZA: ["ZA"],
     ARAB: ["EG", "DZ", "MA", "TN"],
-    FR:   ["SN", "ML", "CI", "GN", "TD", "CD", "NE", "MR"],
+    FR: ["SN", "ML", "CI", "GN", "TD", "CD", "NE", "MR"],
   };
   return TAB_MAP[tab] ?? null;
 }
 // ── TOP-RATED AFRICAN MOVIES ───────────────────────────────
 router.get("/african/top-rated", async (req, res) => {
+
+  const key = `top-rated-${req.query.tab || "all"}-${req.query.period || "year"}`;
+
+  const cached = cache.get(key);
+
+  if (cached) {
+    console.log("✅ Cache HIT:", key);
+    return res.json(cached);
+  }
+
+  console.log("🗄️ Cache MISS:", key);
+
   try {
+
     const { tab = "all", period = "year" } = req.query;
+
     const regions = getTabRegions(tab);
-    const now = new Date();
-    const params = [];
-    let paramIndex = 1;
 
-    // Period filter — much more generous windows
-    let dateFilter = "";
+    const limit =
+      tab === "NG"
+        ? 60
+        : tab === "all"
+          ? 80
+          : 40;
+
+    let fromDate = null;
+
     if (period === "month") {
-      // Last 6 months instead of current month only
-      const sixMonthsAgo = new Date();
-      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-      dateFilter = `AND release_date >= $${paramIndex++}`;
-      params.push(sixMonthsAgo.toISOString().split("T")[0]);
-    } else if (period === "year") {
-      // Last 3 years instead of current year only
-      const threeYearsAgo = new Date();
-      threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
-      dateFilter = `AND release_date >= $${paramIndex++}`;
-      params.push(threeYearsAgo.toISOString().split("T")[0]);
+      const d = new Date();
+      d.setMonth(d.getMonth() - 10);
+      fromDate = d.toISOString().split("T")[0];
     }
 
-    // Region filter
-    let regionFilter = "";
-    if (regions) {
-      const placeholders = regions.map(() => `$${paramIndex++}`).join(", ");
-      regionFilter = `AND tab_region IN (${placeholders})`;
-      params.push(...regions);
+    if (period === "year") {
+      const d = new Date();
+      d.setFullYear(d.getFullYear() - 5);
+      fromDate = d.toISOString().split("T")[0];
     }
 
-    // For All Africa tab, apply regional balance in app layer
-    // For individual tabs, just return everything available sorted by score
-    const limit = tab === "NG" ? 60 : tab === "all" ? 80 : 40;
+    // First pass (respect requested period)
+    let movies = await getTopRatedMovies({
+      regions,
+      fromDate,
+      limit,
+    });
 
-    const query = `
-      SELECT
-        id, tmdb_id, title, release_date, release_year,
-        poster_path, backdrop_path, vote_average, vote_count,
-        genres, director, origin_country, tab_region,
-        confidence_score, trailer_key, synopsis
-      FROM african_movies
-      WHERE status = 'approved'
-        ${dateFilter}
-        ${regionFilter}
-      ORDER BY
-        confidence_score DESC,
-        CASE WHEN vote_count > 5 THEN vote_average ELSE 0 END DESC,
-        vote_count DESC
-      LIMIT ${limit}
-    `;
+    // Second pass (remove date restriction if not enough)
+    if (movies.length < limit) {
 
-    const result = await db.query(query, params);
-    res.json({ movies: result.rows, total: result.rows.length });
+      const remaining = limit - movies.length;
+
+      const fallback = await getTopRatedMovies({
+        regions,
+        fromDate: null,
+        limit: remaining,
+        excludeIds: movies.map(m => m.tmdb_id),
+      });
+
+      movies.push(...fallback);
+    }
+
+    const response = {
+      movies,
+      total: movies.length,
+    };
+
+    cache.set(key, response);
+
+    res.json(response);
 
   } catch (err) {
+
     console.error(err);
-    res.status(500).json({ message: "Failed to fetch top rated" });
+
+    res.status(500).json({
+      message: "Failed to fetch top rated",
+    });
+
   }
+
 });
 
 
 // ── LATEST AFRICAN RELEASES last 18 months ───────────────────────────────
 router.get("/african/latest", async (req, res) => {
+
+  const key = `latest-african-${req.query.tab || "all"}-${req.query.page || 1}`;
+
+  const cached = cache.get(key);
+
+  if (cached) {
+    console.log("✅ Cache HIT:", key);
+    return res.json(cached);
+  }
+  console.log("🗄️ Cache MISS:", key);
   try {
     const { tab = "all", page = 1 } = req.query;
     const regions = getTabRegions(tab);
@@ -112,7 +146,7 @@ router.get("/african/latest", async (req, res) => {
     }
 
     const offsetParam = `$${params.length + 1}`;
-    const limitParam  = `$${params.length + 2}`;
+    const limitParam = `$${params.length + 2}`;
     params.push(offset, limit);
 
     const countQuery = `
@@ -140,12 +174,17 @@ router.get("/african/latest", async (req, res) => {
 
     const result = await db.query(query, params);
 
-    res.json({
-      movies:      result.rows,
+    const response = {
+      movies: result.rows,
       total,
       total_pages: Math.ceil(total / limit),
-      page:        parseInt(page),
-    });
+      page: parseInt(page),
+    };
+
+    cache.set(key, response);
+
+    res.json(response);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch latest releases" });
@@ -154,29 +193,125 @@ router.get("/african/latest", async (req, res) => {
 
 // ── FEATURED AFRICAN FILM (hero) ───────────────────────────
 router.get("/african/featured", async (req, res) => {
-  try {
-    const result = await db.query(
-      `SELECT
-        id, tmdb_id, title, synopsis, release_date, release_year,
-        poster_path, backdrop_path, trailer_key, vote_average, vote_count,
-        genres, director, origin_country, tab_region, confidence_score
-       FROM african_movies
-       WHERE status      = 'approved'
-         AND backdrop_path IS NOT NULL
-         AND trailer_key   IS NOT NULL
-         AND confidence_score >= 4
-       ORDER BY RANDOM()
-       LIMIT 1`
-    );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "No featured film available" });
+  try {
+
+    // Pick one random region first
+    const regionResult = await db.query(`
+      SELECT tab_region
+      FROM (
+        SELECT DISTINCT tab_region
+        FROM african_movies
+        WHERE status = 'approved'
+          AND backdrop_path IS NOT NULL
+          AND trailer_key IS NOT NULL
+          AND confidence_score >= 4
+      ) regions
+      ORDER BY RANDOM()
+      LIMIT 1
+    `);
+
+    if (regionResult.rows.length === 0) {
+      return res.status(404).json({ message: "No regions found." });
     }
 
-    res.json(result.rows[0]);
+    const region = regionResult.rows[0].tab_region;
+
+    // Pick a random movie from that region that hasn't recently been featured
+    let movieResult = await db.query(`
+      SELECT
+        id,
+        tmdb_id,
+        title,
+        synopsis,
+        release_date,
+        release_year,
+        poster_path,
+        backdrop_path,
+        trailer_key,
+        vote_average,
+        vote_count,
+        genres,
+        director,
+        origin_country,
+        tab_region,
+        confidence_score
+      FROM african_movies
+      WHERE status = 'approved'
+        AND backdrop_path IS NOT NULL
+        AND trailer_key IS NOT NULL
+        AND confidence_score >= 4
+        AND tab_region = $1
+        AND id NOT IN (
+          SELECT movie_id
+          FROM featured_history
+        )
+      ORDER BY RANDOM()
+      LIMIT 1
+    `, [region]);
+
+    // If every movie in that region has already been featured,
+    // allow repeats within that region.
+    if (movieResult.rows.length === 0) {
+      movieResult = await db.query(`
+        SELECT
+          id,
+          tmdb_id,
+          title,
+          synopsis,
+          release_date,
+          release_year,
+          poster_path,
+          backdrop_path,
+          trailer_key,
+          vote_average,
+          vote_count,
+          genres,
+          director,
+          origin_country,
+          tab_region,
+          confidence_score
+        FROM african_movies
+        WHERE status = 'approved'
+          AND backdrop_path IS NOT NULL
+          AND trailer_key IS NOT NULL
+          AND confidence_score >= 4
+          AND tab_region = $1
+        ORDER BY RANDOM()
+        LIMIT 1
+      `, [region]);
+    }
+
+    if (movieResult.rows.length === 0) {
+      return res.status(404).json({ message: "No featured movie available." });
+    }
+
+    const movie = movieResult.rows[0];
+
+    // Remember this movie
+    await db.query(`
+      INSERT INTO featured_history(movie_id)
+      VALUES($1)
+      ON CONFLICT (movie_id)
+      DO UPDATE SET featured_at = NOW()
+    `, [movie.id]);
+
+    // Keep only the newest 30 entries
+    await db.query(`
+      DELETE FROM featured_history
+      WHERE movie_id IN (
+        SELECT movie_id
+        FROM featured_history
+        ORDER BY featured_at DESC
+        OFFSET 30
+      )
+    `);
+
+    res.json(movie);
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Failed to fetch featured film" });
+    res.status(500).json({ message: "Failed to fetch featured film." });
   }
 });
 // ── AFRICAN MOVIE SEARCH ─────────────────────────────────  
@@ -191,7 +326,7 @@ router.get("/african/search", async (req, res) => {
     // Search local DB first
     const localResults = await db.query(
       `SELECT
-        tmdb_id, title, original_title, synopsis,
+        id, tmdb_id, title, original_title, synopsis,
         release_date, release_year, vote_average, vote_count,
         poster_path, backdrop_path, origin_country,
         original_language, genres, status
@@ -204,23 +339,23 @@ router.get("/african/search", async (req, res) => {
     );
 
     if (localResults.rows.length > 0) {
-      // Normalize to consistent shape — tmdb_id → id for frontend navigation
       const movies = localResults.rows.map(row => ({
-        id:                row.tmdb_id,
-        title:             row.title,
-        original_title:    row.original_title,
-        synopsis:          row.synopsis,
-        release_date:      row.release_date,
-        release_year:      row.release_year,
-        vote_average:      parseFloat(row.vote_average) || 0,
-        vote_count:        row.vote_count,
-        poster_path:       row.poster_path,
-        backdrop_path:     row.backdrop_path,
-        origin_country:    row.origin_country,
+        id: row.tmdb_id || row.id,
+        title: row.title,
+        original_title: row.original_title,
+        synopsis: row.synopsis,
+        release_date: row.release_date,
+        release_year: row.release_year,
+        vote_average: parseFloat(row.vote_average) || 0,
+        vote_count: row.vote_count,
+        poster_path: row.poster_path,
+        backdrop_path: row.backdrop_path,
+        origin_country: row.origin_country,
         original_language: row.original_language,
-        genres:            row.genres || [],
-        status:            row.status,
-        source:            "database",
+        genres: row.genres || [],
+        status: row.status,
+        source: "database",
+        is_community: !row.tmdb_id,
       }));
 
       return res.json({ movies, total_results: movies.length, source: "database" });
@@ -239,28 +374,27 @@ router.get("/african/search", async (req, res) => {
     );
 
     const tmdbMovies = tmdbRes.data.results.map(m => ({
-      id:                m.id,
-      title:             m.title,
-      original_title:    m.original_title,
-      release_date:      m.release_date,
-      vote_average:      m.vote_average,
-      vote_count:        m.vote_count,
-      poster_path:       m.poster_path,
-      backdrop_path:     m.backdrop_path,
+      id: m.id,
+      title: m.title,
+      original_title: m.original_title,
+      release_date: m.release_date,
+      vote_average: m.vote_average,
+      vote_count: m.vote_count,
+      poster_path: m.poster_path,
+      backdrop_path: m.backdrop_path,
       original_language: m.original_language,
-      source:            "tmdb",
+      source: "tmdb",
+      is_community: false,
     }));
 
-    // Queue TMDB results for admin review — insert as pending if not already in DB
-    // Fire-and-forget: don't await, don't block the search response
     queueTmdbResultsForReview(tmdbMovies).catch(err =>
       console.error("Background queue failed:", err.message)
     );
 
     return res.json({
-      movies:        tmdbMovies,
+      movies: tmdbMovies,
       total_results: tmdbRes.data.total_results,
-      source:        "tmdb",
+      source: "tmdb",
     });
 
   } catch (err) {
@@ -367,18 +501,6 @@ router.get("/african/check-duplicate", verifyToken, async (req, res) => {
 // ── SUBMIT A COMMUNITY MOVIE ───────────────────────────────
 router.post("/african/submit", verifyToken, async (req, res) => {
   try {
-    // Check eligibility — 10+ movies required
-    const countResult = await db.query(
-      "SELECT COUNT(*) FROM movies WHERE user_id = $1",
-      [req.user.id]
-    );
-    const movieCount = parseInt(countResult.rows[0].count);
-
-    if (movieCount < 10) {
-      return res.status(403).json({
-        message: `You need at least 10 movies in your list to submit. You have ${movieCount}.`,
-      });
-    }
 
     const {
       title,
@@ -492,35 +614,53 @@ router.get("/african/movie/:tmdbId", async (req, res) => {
   try {
     const { tmdbId } = req.params;
 
-    // Try DB first
-    const dbResult = await db.query(
+    // Try tmdb_id first (pipeline-enriched films)
+    let dbResult = await db.query(
       `SELECT * FROM african_movies WHERE tmdb_id = $1`,
       [parseInt(tmdbId)]
     );
 
+    // If not found by tmdb_id, try internal id
+    // (community films with no TMDB match use their Postgres row id in the URL)
+    if (dbResult.rows.length === 0) {
+      dbResult = await db.query(
+        `SELECT * FROM african_movies WHERE id = $1`,
+        [parseInt(tmdbId)]
+      );
+    }
+
     if (dbResult.rows.length > 0) {
       const m = dbResult.rows[0];
+      const isFullPosterUrl = isFullUrl(m.poster_path);
+      const isFullBackdropUrl = isFullUrl(m.backdrop_path);
+
       return res.json({
-        id:                m.tmdb_id,
-        title:             m.title,
-        original_title:    m.original_title,
-        synopsis:          m.synopsis,
-        release_date:      m.release_date,
-        runtime:           m.runtime,
-        vote_average:      parseFloat(m.vote_average) || 0,
-        vote_count:        m.vote_count,
-        genres:            m.genres || [],
-        poster_path:       m.poster_path,
-        backdrop_path:     m.backdrop_path,
-        origin_country:    m.origin_country ? [m.origin_country] : [],
+        id: m.tmdb_id || m.id, // use internal id if no tmdb_id
+        internal_id: m.id,
+        title: m.title,
+        original_title: m.original_title,
+        synopsis: m.synopsis,
+        release_date: m.release_date,
+        runtime: m.runtime,
+        vote_average: parseFloat(m.vote_average) || 0,
+        vote_count: m.vote_count,
+        genres: m.genres || [],
+        // ← send full flag so frontend knows which URL type it has
+        poster_path: m.poster_path,
+        poster_is_full_url: isFullPosterUrl,
+        backdrop_path: m.backdrop_path,
+        backdrop_is_full_url: isFullBackdropUrl,
+        origin_country: m.origin_country ? [m.origin_country] : [],
         original_language: m.original_language,
-        cast:              (m.cast_list || []).map(name => ({ name, character: "", profile_path: null })),
-        director:          m.director,
-        trailerKey:        m.trailer_key,
+        cast: (m.cast_list || []).map(name => ({ name, character: "", profile_path: null })),
+        director: m.director,
+        trailerKey: m.trailer_key,
+        is_community: !!m.is_community_unverified,
+        tab_region: m.tab_region,
       });
     }
 
-    // Fallback — not in DB yet, fetch live from TMDB
+    // Fallback — not in DB, try live TMDB
     const tmdbRes = await axios.get(
       `https://api.themoviedb.org/3/movie/${tmdbId}`,
       {
@@ -538,24 +678,27 @@ router.get("/african/movie/:tmdbId", async (req, res) => {
     ) || data.videos?.results?.find(v => v.site === "YouTube");
 
     return res.json({
-      id:                data.id,
-      title:             data.title,
-      original_title:    data.original_title,
-      synopsis:          data.overview,
-      release_date:      data.release_date,
-      runtime:           data.runtime,
-      vote_average:      data.vote_average,
-      vote_count:        data.vote_count,
-      genres:            data.genres?.map(g => g.name) || [],
-      poster_path:       data.poster_path,
-      backdrop_path:     data.backdrop_path,
-      origin_country:    data.production_countries?.map(c => c.iso_3166_1) || [],
+      id: data.id,
+      title: data.title,
+      original_title: data.original_title,
+      synopsis: data.overview,
+      release_date: data.release_date,
+      runtime: data.runtime,
+      vote_average: data.vote_average,
+      vote_count: data.vote_count,
+      genres: data.genres?.map(g => g.name) || [],
+      poster_path: data.poster_path,
+      poster_is_full_url: false,
+      backdrop_path: data.backdrop_path,
+      backdrop_is_full_url: false,
+      origin_country: data.production_countries?.map(c => c.iso_3166_1) || [],
       original_language: data.original_language,
       cast: data.credits?.cast?.slice(0, 10).map(c => ({
         name: c.name, character: c.character, profile_path: c.profile_path,
       })) || [],
-      director:   data.credits?.crew?.find(c => c.job === "Director")?.name || null,
+      director: data.credits?.crew?.find(c => c.job === "Director")?.name || null,
       trailerKey: trailer?.key || null,
+      is_community: false,
     });
 
   } catch (err) {
@@ -606,11 +749,11 @@ router.get("/african/classics", async (req, res) => {
 router.get("/african/spotlights", async (req, res) => {
   try {
     const SPOTLIGHT_REGIONS = [
-      { key: "CM",   label: "Best of Cameroon",      regions: ["CM"] },
-      { key: "GH",   label: "Best of Ghana",          regions: ["GH"] },
-      { key: "ZA",   label: "Best of South Africa",   regions: ["ZA"] },
-      { key: "ARAB", label: "Best of Arab Africa",    regions: ["EG", "DZ", "MA", "TN"] },
-      { key: "FR",   label: "Best of Francophonie",   regions: ["SN", "ML", "CI", "GN", "TD", "CD", "NE", "MR"] },
+      { key: "CM", label: "Best of Cameroon", regions: ["CM"] },
+      { key: "GH", label: "Best of Ghana", regions: ["GH"] },
+      { key: "ZA", label: "Best of South Africa", regions: ["ZA"] },
+      { key: "ARAB", label: "Best of Arab Africa", regions: ["EG", "DZ", "MA", "TN"] },
+      { key: "FR", label: "Best of Francophonie", regions: ["SN", "ML", "CI", "GN", "TD", "CD", "NE", "MR"] },
     ];
 
     const spotlights = [];
@@ -633,8 +776,8 @@ router.get("/african/spotlights", async (req, res) => {
 
       if (result.rows.length > 0) {
         spotlights.push({
-          key:    region.key,
-          label:  region.label,
+          key: region.key,
+          label: region.label,
           movies: result.rows,
         });
       }

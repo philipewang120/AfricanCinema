@@ -40,3 +40,8 @@ npm-debug.log*
 
 .DS_Store
 client/.env.example
+
+# Local databases
+server/config/actorDatabase.json
+server/config/directorDatabase.json
+server/config/adminMovies.json
