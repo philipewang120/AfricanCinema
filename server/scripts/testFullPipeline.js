@@ -1,13 +1,13 @@
 import db from "../db.js";
 import "dotenv/config";
-import { runDirectorSweep }    from "../helpers/directorSweep.js";
-import { runWikipediaSweep }   from "../helpers/wikipediaSweep.js";
-import { mergeCandidates }     from "../helpers/mergeCandidates.js";
+import { runDirectorSweep } from "../helpers/directorSweep.js";
+import { runWikipediaSweep } from "../helpers/wikipediaSweep.js";
+import { mergeCandidates } from "../helpers/mergeCandidates.js";
 import { verifyAllCandidates } from "../helpers/tmdbVerify.js";
 import { enrichAllCandidates } from "../helpers/tmdbEnrich.js";
-import { buildAllTabs }        from "../helpers/buildTabData.js";
-import { publishToDatabase }   from "../helpers/publishToDatabase.js";
-import { runActorSweep }    from "../helpers/actorSweep.js";
+import { buildAllTabs } from "../helpers/buildTabData.js";
+import { publishToDatabase } from "../helpers/publishToDatabase.js";
+import { runActorSweep } from "../helpers/actorSweep.js";
 import { runLanguageSweep } from "../helpers/languageSweep.js";
 
 
@@ -22,8 +22,8 @@ try {
 
 console.log("=== Phase A: Collect ===");
 const directorResults = await runDirectorSweep();
-const wikiResults     = await runWikipediaSweep();
-const actorResults    = await runActorSweep();
+const wikiResults = await runWikipediaSweep();
+const actorResults = await runActorSweep();
 const languageResults = await runLanguageSweep();
 
 console.log("\n=== Phase B: Merge + Verify ===");

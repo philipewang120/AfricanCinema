@@ -90,7 +90,7 @@ router.get("/submissions/counts", verifyAdmin, async (req, res) => {
 });
 
 // ── APPROVE SUBMISSION (admin) ─────────────────────────────
-router.put("/submissions/:id/approve", verifyAdmin, isFullUrl, normalizePosterPath, async (req, res) => {
+router.put("/submissions/:id/approve", verifyAdmin, async (req, res) => {
   const { id } = req.params;
   const { admin_notes } = req.body;
 
@@ -520,7 +520,7 @@ router.get("/pending-movies/count", verifyAdmin, async (req, res) => {
 });
 
 // ── APPROVE PENDING MOVIE ──────────────────────────────────────────────────
-router.put("/pending-movies/:id/approve", verifyAdmin, isFullUrl, normalizePosterPath, async (req, res) => {
+router.put("/pending-movies/:id/approve", verifyAdmin,  async (req, res) => {
   const { id } = req.params;
 
   try {
