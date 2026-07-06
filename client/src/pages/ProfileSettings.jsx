@@ -7,16 +7,19 @@ import {
   Switch, FormControlLabel, Avatar, CircularProgress,
 } from "@mui/material";
 import {
-  Movie, ArrowBack, CameraAlt, Save, Lock, LockOpen, Person,
+  Public, ArrowBack, CameraAlt, Save, Lock, LockOpen, Person,
 } from "@mui/icons-material";
 
 function useFonts() {
   useEffect(() => {
-    const id = "gfonts-cinemalist";
-    if (document.getElementById(id)) return;
+    const id = "gfonts-afrocine";
+    const existingLink = document.getElementById(id);
+    if (existingLink) return;
+
     const link = document.createElement("link");
-    link.id = id; link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap";
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = "https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap";
     document.head.appendChild(link);
   }, []);
 }
@@ -177,172 +180,167 @@ function ProfileSettings() {
   }
 
   if (loading) return (
-    <>
-     
-      <div className="set-page" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
-        <CircularProgress sx={{ color: "var(--accent)" }} />
-      </div>
-    </>
+    <div className="set-page adm-page" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+      <CircularProgress sx={{ color: "var(--electric)" }} />
+    </div>
   );
 
   const initial = username?.charAt(0).toUpperCase();
 
   return (
-    <>
-
-      <div className="set-page">
-        {/* NAV */}
-        <nav className="set-nav">
-          <div className="set-logo" onClick={() => navigate("/")}>
-            <div className="set-logo-icon"><Movie sx={{ fontSize: 18 }} /></div>
-            AFRICAN CINEMA
+    <div className="set-page adm-page">
+      <nav className="adm-nav set-nav">
+        <Box
+          className="af-logo"
+          onClick={() => navigate("/")}
+          sx={{ flexShrink: 0, cursor: "pointer" }}
+        >
+          <div className="af-logo-icon">
+            <Public sx={{ fontSize: 16 }} />
           </div>
-          <Button
-            className="set-back-btn"
-            startIcon={<ArrowBack sx={{ fontSize: 15 }} />}
-            onClick={() => navigate(`/`)}
-          >
-            Back to home
-          </Button>
-        </nav>
+          <span className="af-logo-text-afro">AFRO</span>
+          <span className="af-logo-text-cine">CINÉ</span>
+        </Box>
+        <Button
+          className="adm-back-btn set-back-btn"
+          startIcon={<ArrowBack sx={{ fontSize: 15 }} />}
+          onClick={() => navigate(`/`)}
+        >
+          Back to home
+        </Button>
+      </nav>
 
-        <div className="set-body">
-          <Typography className="set-page-title">Settings</Typography>
-          <Typography className="set-page-sub">Manage your profile and account preferences</Typography>
-
-          {success && <div className="set-success">✓ {success}</div>}
-          {error   && <div className="set-error">✕ {error}</div>}
-
-          {/* ── AVATAR ── */}
-          <div className="set-card fade-up">
-            <div className="set-card-title">
-              <CameraAlt sx={{ fontSize: 16 }} /> PROFILE PHOTO
-            </div>
-            <div className="set-avatar-wrap">
-              <div className="set-avatar-btn" onClick={() => fileInputRef.current?.click()}>
-                <Avatar
-                  src={avatarPreview}
-                  sx={{ width: 80, height: 80, fontSize: 32, fontFamily: "var(--font-display)", background: "var(--raised)" }}
-                >
-                  {!avatarPreview && initial}
-                </Avatar>
-                <div className="set-avatar-overlay">
-                  {uploadingPic
-                    ? <CircularProgress size={20} sx={{ color: "#fff" }} />
-                    : <CameraAlt sx={{ fontSize: 20, color: "#fff" }} />
-                  }
-                </div>
-              </div>
-              <div className="set-avatar-hint">
-                <strong>Click to upload a new photo</strong><br />
-                JPG, PNG or WebP · Max 5MB<br />
-                Will be cropped to a square
-              </div>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              style={{ display: "none" }}
-              onChange={handleAvatarChange}
-            />
-            {avatarFile && (
-              <Typography sx={{ fontSize: 12, color: "var(--accent2)", mt: 1 }}>
-                ✓ New photo selected — save to apply
-              </Typography>
-            )}
+      <div className="adm-body set-body">
+        <div className="set-hero-card fade-up">
+          <div>
+            <Typography className="set-page-title">Settings</Typography>
+            <Typography className="set-page-sub">Manage your profile photo, bio, and privacy preferences.</Typography>
           </div>
-
-          {/* ── PROFILE INFO ── */}
-          <div className="set-card fade-up" style={{ animationDelay: "0.05s" }}>
-            <div className="set-card-title">
-              <Person sx={{ fontSize: 16 }} /> PROFILE INFO
-            </div>
-            <Stack spacing={2.5}>
-
-              {/* Username */}
-              <Box>
-                <TextField
-                  className="set-field"
-                  label="Username"
-                  fullWidth
-                  value={username}
-                  onChange={e => { setUsername(e.target.value); setError(""); }}
-                  inputProps={{ maxLength: 30 }}
-                />
-                <div className="set-username-rules">
-                  {rules.map((r, i) => (
-                    <div key={i} className={`set-rule${r.valid ? " valid" : ""}`}>
-                      <div className="set-rule-dot" />
-                      {r.label}
-                    </div>
-                  ))}
-                </div>
-              </Box>
-
-              {/* Bio */}
-              <Box>
-                <TextField
-                  className="set-field"
-                  label="Bio"
-                  fullWidth
-                  multiline
-                  rows={3}
-                  value={bio}
-                  onChange={e => { setBio(e.target.value); setError(""); }}
-                  inputProps={{ maxLength: 150 }}
-                  placeholder="Tell people a little about yourself…"
-                />
-                <div className={`set-char-count${bioLength > 130 ? " warn" : ""}`}>
-                  {bioLength}/150
-                </div>
-              </Box>
-
-            </Stack>
-          </div>
-
-          {/* ── PRIVACY ── */}
-          <div className="set-card fade-up" style={{ animationDelay: "0.1s" }}>
-            <div className="set-card-title">
-              <Lock sx={{ fontSize: 16 }} /> PRIVACY
-            </div>
-            <div className="set-privacy-row">
-              <div className="set-privacy-info">
-                <div className="set-privacy-label">
-                  {isPublic ? "Public Profile" : "Private Profile"}
-                </div>
-                <div className="set-privacy-desc">
-                  {isPublic
-                    ? "Anyone can see your movies, stats and activity"
-                    : "Only your followers can see your content"}
-                </div>
-              </div>
-              <Switch
-                checked={isPublic}
-                onChange={handlePrivacyToggle}
-                sx={{
-                  "& .MuiSwitch-thumb": { background: isPublic ? "var(--accent2)" : "var(--muted)" },
-                  "& .MuiSwitch-track": { background: "var(--raised) !important" },
-                  "& .Mui-checked + .MuiSwitch-track": { background: "var(--accent2) !important", opacity: "0.4 !important" },
-                }}
-              />
-            </div>
-          </div>
-
-          {/* ── SAVE ── */}
-          <Button
-            className="set-save-btn fade-up"
-            onClick={handleSave}
-            disabled={saving || !allRulesPass}
-            startIcon={saving ? <CircularProgress size={16} sx={{ color: "var(--ink)" }} /> : <Save sx={{ fontSize: 18 }} />}
-            style={{ animationDelay: "0.15s" }}
-          >
-            {saving ? "Saving…" : "Save changes"}
-          </Button>
-
+          <div className="set-hero-badge">Your profile</div>
         </div>
+
+        {success && <div className="set-success fade-up">✓ {success}</div>}
+        {error && <div className="set-error fade-up">✕ {error}</div>}
+
+        <div className="set-card fade-up">
+          <div className="set-card-title">
+            <CameraAlt sx={{ fontSize: 16 }} /> PROFILE PHOTO
+          </div>
+          <div className="set-avatar-wrap">
+            <div className="set-avatar-btn" onClick={() => fileInputRef.current?.click()}>
+              <Avatar
+                src={avatarPreview}
+                sx={{ width: 80, height: 80, fontSize: 32, fontFamily: "var(--font-display)", background: "var(--raised)", border: "1px solid var(--border)" }}
+              >
+                {!avatarPreview && initial}
+              </Avatar>
+              <div className="set-avatar-overlay">
+                {uploadingPic
+                  ? <CircularProgress size={20} sx={{ color: "#fff" }} />
+                  : <CameraAlt sx={{ fontSize: 20, color: "#fff" }} />
+                }
+              </div>
+            </div>
+            <div className="set-avatar-hint">
+              <strong>Click to upload a new photo</strong><br />
+              JPG, PNG or WebP · Max 5MB<br />
+              Will be cropped to a square
+            </div>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            style={{ display: "none" }}
+            onChange={handleAvatarChange}
+          />
+          {avatarFile && (
+            <Typography sx={{ fontSize: 12, color: "var(--accent2)", mt: 1 }}>
+              ✓ New photo selected — save to apply
+            </Typography>
+          )}
+        </div>
+
+        <div className="set-card fade-up">
+          <div className="set-card-title">
+            <Person sx={{ fontSize: 16 }} /> PROFILE INFO
+          </div>
+          <Stack spacing={2.5}>
+            <Box>
+              <TextField
+                className="set-field"
+                label="Username"
+                fullWidth
+                value={username}
+                onChange={e => { setUsername(e.target.value); setError(""); }}
+                inputProps={{ maxLength: 30 }}
+              />
+              <div className="set-username-rules">
+                {rules.map((r, i) => (
+                  <div key={i} className={`set-rule${r.valid ? " valid" : ""}`}>
+                    <div className="set-rule-dot" />
+                    {r.label}
+                  </div>
+                ))}
+              </div>
+            </Box>
+
+            <Box>
+              <TextField
+                className="set-field"
+                label="Bio"
+                fullWidth
+                multiline
+                rows={3}
+                value={bio}
+                onChange={e => { setBio(e.target.value); setError(""); }}
+                inputProps={{ maxLength: 150 }}
+                placeholder="Tell people a little about yourself…"
+              />
+              <div className={`set-char-count${bioLength > 130 ? " warn" : ""}`}>
+                {bioLength}/150
+              </div>
+            </Box>
+          </Stack>
+        </div>
+
+        <div className="set-card fade-up">
+          <div className="set-card-title">
+            <Lock sx={{ fontSize: 16 }} /> PRIVACY
+          </div>
+          <div className="set-privacy-row">
+            <div className="set-privacy-info">
+              <div className="set-privacy-label">
+                {isPublic ? "Public Profile" : "Private Profile"}
+              </div>
+              <div className="set-privacy-desc">
+                {isPublic
+                  ? "Anyone can see your movies, stats and activity"
+                  : "Only your followers can see your content"}
+              </div>
+            </div>
+            <Switch
+              checked={isPublic}
+              onChange={handlePrivacyToggle}
+              sx={{
+                "& .MuiSwitch-thumb": { background: isPublic ? "var(--accent2)" : "var(--muted)" },
+                "& .MuiSwitch-track": { background: "var(--raised) !important" },
+                "& .Mui-checked + .MuiSwitch-track": { background: "var(--accent2) !important", opacity: "0.4 !important" },
+              }}
+            />
+          </div>
+        </div>
+
+        <Button
+          className="set-save-btn fade-up"
+          onClick={handleSave}
+          disabled={saving || !allRulesPass}
+          startIcon={saving ? <CircularProgress size={16} sx={{ color: "var(--ink)" }} /> : <Save sx={{ fontSize: 18 }} />}
+        >
+          {saving ? "Saving…" : "Save changes"}
+        </Button>
       </div>
-    </>
+    </div>
   );
 }
 

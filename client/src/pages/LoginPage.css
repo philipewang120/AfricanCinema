@@ -1,125 +1,307 @@
+/* ── AfroCiné — Auth Pages (Login + Register) ────────────────────────── */
+/* Inherits :root tokens from AfricanPage.css                             */
 
-  :root {
-    --ink: #0f0f12; --surface: #16161c; --card: #1e1e27; --raised: #26262f;
-    --accent: #e8c547; --accent2: #5de8c5; --muted: #6b6b7a;
-    --border: rgba(255,255,255,0.07); --radius-lg: 18px;
-    --font-display: 'Bebas Neue', sans-serif; --font-body: 'DM Sans', sans-serif;
-  }
-  body { background: var(--ink); font-family: var(--font-body); color: #e0e0e8; margin: 0; }
-  .auth-page { min-height: 100vh; display: flex; flex-direction: column; background: var(--ink); }
-  .auth-nav {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 32px; height: 68px; background: var(--surface);
-    border-bottom: 1px solid var(--border);
-  }
-  .auth-logo {
-    font-family: var(--font-display); font-size: 24px; letter-spacing: 2px;
-    color: var(--accent); display: flex; align-items: center; gap: 8px; cursor: pointer;
-  }
-  .auth-logo-icon {
-    width: 34px; height: 34px; background: var(--accent); border-radius: 8px;
-    display: flex; align-items: center; justify-content: center; color: var(--ink);
-  }
-  .auth-body { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
-  .auth-card {
-    width: 100%; max-width: 420px; background: var(--card);
-    border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 36px 32px;
-  }
-  .auth-title {
-    font-family: var(--font-display); font-size: 40px; letter-spacing: 2px;
-    text-align: center; margin-bottom: 8px;
-  }
-  .auth-sub { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 24px; }
-  .auth-error {
-    background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.25);
-    border-radius: 10px; padding: 10px; font-size: 13px; color: #ff6b6b; margin-bottom: 16px; text-align: center;
-  }
-  .auth-submit {
-    width: 100%; margin-top: 20px !important; background: var(--accent) !important;
-    color: var(--ink) !important; border-radius: 12px !important; padding: 12px !important;
-    font-weight: 600 !important; text-transform: none !important;
-  }
-  .auth-footer { text-align: center; margin-top: 24px; font-size: 13px; color: var(--muted); }
-  .auth-footer a { color: var(--accent); font-weight: 600; text-decoration: none; }
+/* ── RESET / BASE ────────────────────────────────────────────────────── */
+body {
+  background: var(--void);
+  font-family: var(--font-body);
+  color: var(--text);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
 
-  /* ── DIVIDER ── */
-  .login-divider {
-    margin: 28px 0 !important;
-    font-family: var(--font-body) !important;
-    font-size: 11px !important;
-    letter-spacing: 2px !important;
-    color: var(--muted) !important;
-  }
+/* ── PAGE LAYOUT ─────────────────────────────────────────────────────── */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--void);
+  position: relative;
+  overflow: hidden;
+}
 
-  .login-divider::before,
-  .login-divider::after {
-    border-color: var(--border) !important;
-  }
+/* Background ambient blobs — same Afrofuturism signature */
+.auth-page::before {
+  content: '';
+  position: fixed;
+  width: 600px; height: 600px;
+  top: -200px; right: -200px;
+  background: radial-gradient(circle, rgba(123,47,255,0.2) 0%, transparent 70%);
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  animation: blob-drift 14s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+.auth-page::after {
+  content: '';
+  position: fixed;
+  width: 400px; height: 400px;
+  bottom: -100px; left: -100px;
+  background: radial-gradient(circle, rgba(232,160,32,0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: blob-drift 20s ease-in-out infinite reverse;
+  pointer-events: none;
+  z-index: 0;
+}
 
-  /* ── OAUTH BUTTONS ── */
-  .login-oauth-btn {
-    width: 100%;
-    height: 44px !important;
-    border-radius: 12px !important;
-    text-transform: none !important;
-    font-family: var(--font-body) !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    color: #e0e0e8 !important;
-    border-color: var(--border) !important;
-    background: var(--raised) !important;
-    justify-content: flex-start !important;
-    padding-left: 20px !important;
-    gap: 12px !important;
-    transition: background var(--transition), border-color var(--transition) !important;
-    margin-bottom: 10px !important;
-    display: flex !important;
-  }
+/* ── NAV ─────────────────────────────────────────────────────────────── */
+.auth-nav {
+  position: relative; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; height: 68px;
+  background: rgba(6,4,14,0.85);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border-bottom: 1px solid var(--border);
+}
+@media (max-width: 600px) { .auth-nav { padding: 0 20px; } }
 
-  .login-oauth-btn:last-child { margin-bottom: 0 !important; }
+/* ── LOGO ────────────────────────────────────────────────────────────── */
+.auth-logo {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+.auth-logo:hover { opacity: 0.85; }
 
-  .login-oauth-btn:hover {
-    background: #2e2e3a !important;
-    border-color: rgba(255,255,255,0.18) !important;
-  }
+.auth-logo-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--electric), var(--gold));
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  font-size: 16px;
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.auth-logo-text-afro { color: var(--gold); }
+.auth-logo-text-cine { color: var(--text); }
+
+/* Nav link text */
+.auth-nav .MuiTypography-root a {
+  color: var(--electric);
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity var(--transition);
+}
+.auth-nav .MuiTypography-root a:hover { opacity: 0.8; }
+
+/* ── BODY ────────────────────────────────────────────────────────────── */
+.auth-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  position: relative; z-index: 1;
+}
+
+/* ── CARD ────────────────────────────────────────────────────────────── */
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: rgba(19,16,42,0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 44px 36px;
+  box-shadow:
+    0 32px 80px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(123,47,255,0.08),
+    inset 0 1px 0 rgba(237,232,255,0.04);
+  animation: fadeUp 0.45s ease both;
+}
+@media (max-width: 480px) { .auth-card { padding: 32px 24px; } }
+
+/* ── TITLE ───────────────────────────────────────────────────────────── */
+.auth-title {
+  font-family: var(--font-display);
+  font-size: 44px; font-weight: 600;
+  letter-spacing: -0.5px;
+  text-align: center;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--text) 40%, #B39DFF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.auth-sub {
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  font-family: var(--font-body);
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+
+/* ── ERROR ───────────────────────────────────────────────────────────── */
+.auth-error {
+  background: rgba(255,77,109,0.08);
+  border: 1px solid rgba(255,77,109,0.25);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--coral);
+  margin-bottom: 16px;
+  text-align: center;
+  font-family: var(--font-body);
+}
+
+/* ── MUI TEXT FIELDS ─────────────────────────────────────────────────── */
+.auth-card .MuiTextField-root .MuiInputBase-input {
+  color: var(--text) !important;
+  font-family: var(--font-body) !important;
+  font-size: 14px !important;
+}
+.auth-card .MuiInputLabel-root {
+  color: var(--muted) !important;
+  font-family: var(--font-body) !important;
+  font-size: 14px !important;
+}
+.auth-card .MuiInputLabel-root.Mui-focused {
+  color: var(--electric) !important;
+}
+.auth-card .MuiOutlinedInput-root fieldset {
+  border-color: var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.auth-card .MuiOutlinedInput-root:hover fieldset {
+  border-color: rgba(123,47,255,0.35) !important;
+}
+.auth-card .MuiOutlinedInput-root.Mui-focused fieldset {
+  border-color: var(--electric) !important;
+  box-shadow: 0 0 0 3px rgba(123,47,255,0.12) !important;
+}
+.auth-card .MuiInputBase-root {
+  background: rgba(28,24,56,0.6) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+/* ── SUBMIT BUTTON ───────────────────────────────────────────────────── */
+.auth-submit {
+  width: 100% !important;
+  margin-top: 20px !important;
+  background: linear-gradient(135deg, var(--electric), var(--coral)) !important;
+  color: #fff !important;
+  border-radius: 50px !important;
+  padding: 13px !important;
+  font-family: var(--font-body) !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  text-transform: none !important;
+  letter-spacing: 0.3px !important;
+  transition: all var(--transition) !important;
+  box-shadow: 0 4px 20px rgba(123,47,255,0.35) !important;
+}
+.auth-submit:hover {
+  transform: scale(1.02) !important;
+  box-shadow: 0 8px 32px rgba(123,47,255,0.5) !important;
+}
+.auth-submit:disabled {
+  opacity: 0.6 !important;
+  transform: none !important;
+}
+
+/* ── DIVIDER ─────────────────────────────────────────────────────────── */
+.login-divider {
+  margin: 28px 0 !important;
+  font-family: var(--font-mono) !important;
+  font-size: 10px !important;
+  letter-spacing: 2.5px !important;
+  color: var(--muted) !important;
+}
+.login-divider::before,
+.login-divider::after {
+  border-color: var(--border) !important;
+}
+
+/* ── OAUTH BUTTONS ───────────────────────────────────────────────────── */
+.login-oauth-btn {
+  width: 100% !important;
+  height: 46px !important;
+  border-radius: 50px !important;
+  text-transform: none !important;
+  font-family: var(--font-body) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  background: rgba(28,24,56,0.6) !important;
+  justify-content: flex-start !important;
+  padding-left: 20px !important;
+  gap: 12px !important;
+  transition: all var(--transition) !important;
+  margin-bottom: 10px !important;
+  display: flex !important;
+  backdrop-filter: blur(8px) !important;
+}
+.login-oauth-btn:last-of-type { margin-bottom: 0 !important; }
+.login-oauth-btn:hover {
+  background: rgba(123,47,255,0.1) !important;
+  border-color: var(--electric) !important;
+  box-shadow: 0 0 16px rgba(123,47,255,0.15) !important;
+}
+
+/* ── FOOTER LINK ─────────────────────────────────────────────────────── */
+.auth-footer {
+  text-align: center;
+  margin-top: 28px;
+  font-size: 13px;
+  color: var(--muted);
+  font-family: var(--font-body);
+}
+.auth-footer a {
+  color: var(--electric);
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity var(--transition);
+}
+.auth-footer a:hover { opacity: 0.8; }
+
+/* ── REDIRECT BANNER (submit-film prompt) ────────────────────────────── */
 .login-redirect-banner {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  background: rgba(232, 197, 71, 0.08);
-  border: 1px solid rgba(232, 197, 71, 0.25);
-  border-radius: 12px;
-  padding: 14px 16px;
-  margin-bottom: 24px;
+  gap: 14px;
+  background: rgba(232,160,32,0.07);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  margin: 0 0 24px;
+  position: relative; z-index: 1;
+  animation: fadeUp 0.4s ease both;
 }
-
 .login-redirect-icon {
-  font-size: 22px;
+  font-size: 24px;
   flex-shrink: 0;
   margin-top: 1px;
 }
-
 .login-redirect-msg {
   font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--accent);
+  font-size: 14px; font-weight: 600;
+  color: var(--gold);
   margin-bottom: 4px;
 }
-
 .login-redirect-sub {
   font-family: var(--font-body);
   font-size: 13px;
   color: var(--muted);
+  line-height: 1.5;
 }
-
 .login-redirect-link {
-  color: var(--accent2);
+  color: var(--teal);
   cursor: pointer;
   font-weight: 600;
-  transition: opacity 0.2s;
+  transition: opacity var(--transition);
 }
-
-.login-redirect-link:hover {
-  opacity: 0.8;
-}
+.login-redirect-link:hover { opacity: 0.8; }

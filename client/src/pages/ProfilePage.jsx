@@ -2,16 +2,20 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { apiFetch, getToken } from "../api";
 import "./ProfilePage.css";
+import "./AfricanPage.css";
 import { Box, Button, Typography, Avatar, Chip, CircularProgress } from "@mui/material";
-import { Movie, ArrowBack, Lock, Star } from "@mui/icons-material";
+import { Movie, ArrowBack, Lock, Star, Public} from "@mui/icons-material";
 
 function useFonts() {
   useEffect(() => {
-    const id = "gfonts-cinemalist";
-    if (document.getElementById(id)) return;
+    const id = "gfonts-afrocine";
+    const existingLink = document.getElementById(id);
+    if (existingLink) return;
+
     const link = document.createElement("link");
-    link.id = id; link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap";
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = "https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap";
     document.head.appendChild(link);
   }, []);
 }
@@ -41,20 +45,22 @@ function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="prof-page" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
-        <CircularProgress sx={{ color: "var(--accent)" }} />
+      <div className="prof-page adm-page" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+        <CircularProgress sx={{ color: "var(--electric)" }} />
       </div>
     );
   }
 
   if (notFound) {
     return (
-      <div className="prof-page">
+      <div className="prof-page adm-page">
         <ProfileNav navigate={navigate} />
-        <div className="prof-empty-wrap">
-          <Typography className="prof-empty-title">USER NOT FOUND</Typography>
-          <Typography className="prof-empty-sub">This profile doesn't exist.</Typography>
-          <Button className="prof-back-cta" onClick={() => navigate("/")}>Back to home</Button>
+        <div className="adm-body prof-body">
+          <div className="prof-empty-card fade-up">
+            <Typography className="prof-empty-title">USER NOT FOUND</Typography>
+            <Typography className="prof-empty-sub">This profile doesn't exist.</Typography>
+            <Button className="prof-back-cta" onClick={() => navigate("/")}>Back to home</Button>
+          </div>
         </div>
       </div>
     );
@@ -64,35 +70,35 @@ function ProfilePage() {
   const isOwner = profile?.isOwner;
 
   return (
-    <div className="prof-page">
+    <div className="prof-page adm-page">
       <ProfileNav navigate={navigate} />
 
-      <div className="prof-body">
+      <div className="adm-body prof-body">
+        <div className="prof-hero-card fade-up">
+          <div className="prof-hero-main">
+            <Avatar
+              src={profile.profile_pic}
+              sx={{ width: 96, height: 96, fontSize: 36, fontFamily: "var(--font-display)", background: "var(--raised)", border: "1px solid var(--border)" }}
+            >
+              {!profile.profile_pic && initial}
+            </Avatar>
 
-        {/* HEADER */}
-        <div className="prof-header fade-up">
-          <Avatar
-            src={profile.profile_pic}
-            sx={{ width: 96, height: 96, fontSize: 36, fontFamily: "var(--font-display)", background: "var(--raised)" }}
-          >
-            {!profile.profile_pic && initial}
-          </Avatar>
-
-          <div className="prof-header-info">
-            <Typography className="prof-username">{profile.username}</Typography>
-            {profile.bio && <Typography className="prof-bio">{profile.bio}</Typography>}
-            {!profile.is_public && (
-              <Chip
-                icon={<Lock sx={{ fontSize: 14 }} />}
-                label="Private"
-                size="small"
-                sx={{
-                  background: "rgba(255,107,107,0.1)", color: "#ff6b6b",
-                  border: "1px solid rgba(255,107,107,0.25)", mt: 1,
-                  fontFamily: "var(--font-body)", fontSize: 12,
-                }}
-              />
-            )}
+            <div className="prof-header-info">
+              <Typography className="prof-username">{profile.username}</Typography>
+              {profile.bio && <Typography className="prof-bio">{profile.bio}</Typography>}
+              {!profile.is_public && (
+                <Chip
+                  icon={<Lock sx={{ fontSize: 14 }} />}
+                  label="Private"
+                  size="small"
+                  sx={{
+                    background: "rgba(255,107,107,0.1)", color: "#ff6b6b",
+                    border: "1px solid rgba(255,107,107,0.25)", mt: 1,
+                    fontFamily: "var(--font-body)", fontSize: 12,
+                  }}
+                />
+              )}
+            </div>
           </div>
 
           {isOwner && (
@@ -102,7 +108,6 @@ function ProfilePage() {
           )}
         </div>
 
-        {/* LOCKED STATE */}
         {profile.locked ? (
           <div className="prof-locked-card fade-up">
             <Lock sx={{ fontSize: 32, color: "var(--muted)", mb: 1 }} />
@@ -113,7 +118,6 @@ function ProfilePage() {
           </div>
         ) : (
           <>
-            {/* STATS */}
             <div className="prof-stats-row fade-up">
               <div className="prof-stat-card">
                 <Typography className="prof-stat-num">{profile.stats?.totalSubmissions ?? 0}</Typography>
@@ -125,8 +129,7 @@ function ProfilePage() {
               </div>
             </div>
 
-            {/* APPROVED FILMS */}
-            <div className="prof-section fade-up">
+            <div className="prof-section-card fade-up">
               <Typography className="prof-section-title">
                 <Star sx={{ fontSize: 18 }} /> APPROVED FILMS
               </Typography>
@@ -155,8 +158,7 @@ function ProfilePage() {
               )}
             </div>
 
-            {/* SUBMISSIONS */}
-            <div className="prof-section fade-up">
+            <div className="prof-section-card fade-up">
               <Typography className="prof-section-title">
                 <Movie sx={{ fontSize: 18 }} /> RECENT SUBMISSIONS
               </Typography>
@@ -195,13 +197,17 @@ function ProfilePage() {
 
 function ProfileNav({ navigate }) {
   return (
-    <nav className="prof-nav">
-      <div className="prof-logo" onClick={() => navigate("/")}>
-        <div className="prof-logo-icon"><Movie sx={{ fontSize: 18 }} /></div>
-        AFRICAN CINEMA
-      </div>
+    <nav className="adm-nav prof-nav">
+      <Box className="af-logo prof-logo" onClick={() => navigate("/")}
+        role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && navigate("/")}>
+        <div className="af-logo-icon">
+            <Public sx={{ fontSize: 16 }} />
+          </div>
+          <span className="af-logo-text-afro">AFRO</span>
+          <span className="af-logo-text-cine">CINÉ</span>
+      </Box>
       <Button
-        className="prof-back-btn"
+        className="adm-back-btn prof-back-btn"
         startIcon={<ArrowBack sx={{ fontSize: 15 }} />}
         onClick={() => navigate("/")}
       >

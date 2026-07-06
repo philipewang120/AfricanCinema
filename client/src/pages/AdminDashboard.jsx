@@ -11,18 +11,18 @@ import {
   Edit, Visibility,
 } from "@mui/icons-material";
 import "./AdminDashboard.css";
+import "./AfricanPage.css";
 
 function useFonts() {
   useEffect(() => {
-    const id = "gfonts-cinemalist";
+    const id = "gfonts-afrocine";
     if (document.getElementById(id)) return;
     const link = document.createElement("link");
     link.id = id; link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap";
+    link.href = "https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap";
     document.head.appendChild(link);
   }, []);
 }
-
 
 
 function timeAgo(dateStr) {
@@ -67,11 +67,7 @@ function PendingMovieCard({ movie, onApprove, onReject, processing }) {
           {movie.genres?.length > 0 && (
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
               {movie.genres.map(g => (
-                <span key={g} style={{
-                  fontSize: 10, padding: "2px 8px", borderRadius: 20,
-                  background: "var(--raised)", color: "var(--muted)",
-                  border: "1px solid var(--border)"
-                }}>{g}</span>
+                <span key={g} className="adm-genre-chip">{g}</span>
               ))}
             </div>
           )}
@@ -147,11 +143,7 @@ function SubmissionCard({ sub, onApprove, onReject, onDelete, processing }) {
           {sub.genres?.length > 0 && (
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
               {sub.genres.map(g => (
-                <span key={g} style={{
-                  fontSize: 10, padding: "2px 8px", borderRadius: 20,
-                  background: "var(--raised)", color: "var(--muted)",
-                  border: "1px solid var(--border)"
-                }}>{g}</span>
+                <span key={g} className="adm-genre-chip">{g}</span>
               ))}
             </div>
           )}
@@ -516,10 +508,17 @@ function AdminDashboard() {
 
         {/* NAV */}
         <nav className="adm-nav">
-          <div className="adm-logo" onClick={() => navigate("/")}>
-            <div className="adm-logo-icon"><Public sx={{ fontSize: 18 }} /></div>
-            AFRICAN CINEMA
-          </div>
+                   <Box
+  className="af-logo"
+  onClick={() => navigate("/")}
+  sx={{ flexShrink: 0, cursor: "pointer" }}
+>
+  <div className="af-logo-icon">
+    <Public sx={{ fontSize: 16 }} />
+  </div>
+  <span className="af-logo-text-afro">AFRO</span>
+  <span className="af-logo-text-cine">CINÉ</span>
+</Box>
           <span className="adm-badge">ADMIN DASHBOARD</span>
           <Button
             className="adm-back-btn"
@@ -633,21 +632,11 @@ function AdminDashboard() {
                 {["pending", "approved", "rejected"].map(s => (
                   <button
                     key={s}
+                    className={`adm-filter-btn${subFilter === s ? " active" : ""}`}
                     onClick={() => { setSubFilter(s); loadSubmissions(s, 0); }}
-                    style={{
-                      background: subFilter === s ? "rgba(232,197,71,0.12)" : "var(--card)",
-                      border: `1px solid ${subFilter === s ? "rgba(232,197,71,0.3)" : "var(--border)"}`,
-                      color: subFilter === s ? "var(--accent)" : "var(--muted)",
-                      borderRadius: "10px", padding: "6px 16px",
-                      fontFamily: "var(--font-body)", fontSize: 13, cursor: "pointer",
-                      transition: "all 0.2s", textTransform: "capitalize",
-                      display: "flex", alignItems: "center", gap: 6,
-                    }}
                   >
-                    {s} <span style={{
-                      background: "var(--raised)", borderRadius: "20px",
-                      padding: "1px 8px", fontSize: 11,
-                    }}>{counts[s]}</span>
+                    {s}
+                    <span className="adm-filter-count">{counts[s]}</span>
                   </button>
                 ))}
               </div>

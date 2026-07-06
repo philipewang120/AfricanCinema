@@ -6,16 +6,15 @@ import {
 import { Lock, Visibility, VisibilityOff, Public, Email, Person, 
   Google, Facebook, GitHub, Movie,} from "@mui/icons-material";
 import "./RegisterPage.css";
+import "./AfricanPage.css";
 
 function useFonts() {
   useEffect(() => {
-    const id = "gfonts-african-cinema";
+    const id = "gfonts-afrocine";
     if (document.getElementById(id)) return;
     const link = document.createElement("link");
-    link.id = id;
-    link.rel = "stylesheet";
-    link.href =
-      "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap";
+    link.id = id; link.rel = "stylesheet";
+    link.href = "https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap";
     document.head.appendChild(link);
   }, []);
 }
@@ -59,10 +58,11 @@ function RegisterPage() {
     <>
       <div className="auth-page">
         <nav className="auth-nav">
-          <div className="auth-logo" onClick={() => navigate("/")}>
-            <div className="auth-logo-icon"><Public sx={{ fontSize: 18 }} /></div>
-            AFRICAN CINEMA
-          </div>
+         <div className="af-logo" onClick={() => navigate("/")}>
+  <div className="af-logo-icon"><Public sx={{ fontSize: 16 }} /></div>
+  <span className="af-logo-text-afro">AFRO</span>
+  <span className="af-logo-text-cine">CINÉ</span>
+</div>
           <Typography sx={{ fontSize: 13, color: "var(--muted)" }}>
             Have an account? <Link to="/login">Sign in</Link>
           </Typography>

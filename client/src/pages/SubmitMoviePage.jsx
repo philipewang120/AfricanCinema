@@ -7,18 +7,18 @@ import {
   FormControl, Chip,
 } from "@mui/material";
 import {
-  Movie, ArrowBack, Add, Remove, CheckCircle,
-  Warning, Search, Upload,
+  Public, ArrowBack, Add, Remove, CheckCircle,
+  Warning,
 } from "@mui/icons-material";
 import "./SubmitMoviePage.css";
 
 function useFonts() {
   useEffect(() => {
-    const id = "gfonts-cinemalist";
+    const id = "gfonts-afrocine";
     if (document.getElementById(id)) return;
     const link = document.createElement("link");
     link.id = id; link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap";
+    link.href = "https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap";
     document.head.appendChild(link);
   }, []);
 }
@@ -236,11 +236,11 @@ function SubmitMoviePage() {
   }
 
   const selectSx = {
-    background: "var(--card)", color: "#e0e0e8",
+    background: "rgba(28,24,56,0.78)", color: "var(--text)",
     fontFamily: "var(--font-body)", fontSize: 14,
     borderRadius: "12px",
     "& .MuiOutlinedInput-notchedOutline": { borderColor: "var(--border)", borderRadius: "12px" },
-    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.18)" },
+    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.16)" },
     "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "var(--accent2)" },
     "& .MuiSvgIcon-root": { color: "var(--muted)" },
   };
@@ -248,36 +248,49 @@ function SubmitMoviePage() {
   const menuPropsSx = {
     PaperProps: {
       sx: {
-        background: "var(--card)", border: "1px solid var(--border)",
-        borderRadius: "12px", mt: 0.5,
+        background: "linear-gradient(180deg, rgba(19,16,42,0.98), rgba(8,7,20,0.98))",
+        border: "1px solid var(--border)",
+        borderRadius: "16px",
+        mt: 0.75,
+        boxShadow: "0 18px 50px rgba(0,0,0,0.42)",
+        overflow: "hidden",
         "& .MuiMenuItem-root": {
-          fontFamily: "var(--font-body)", fontSize: 13, color: "#e0e0e8",
-          "&:hover": { background: "var(--raised)" },
-          "&.Mui-selected": { background: "rgba(93,232,197,0.12)", color: "var(--accent2)" },
+          fontFamily: "var(--font-body)",
+          fontSize: 13,
+          color: "var(--text)",
+          borderRadius: "10px",
+          mx: 0.7,
+          my: 0.35,
+          px: 1.2,
+          py: 0.8,
+          "&:hover": { background: "rgba(123,47,255,0.12)" },
+          "&.Mui-selected": { background: "rgba(0,212,170,0.12)", color: "var(--accent2)" },
         },
       },
     },
   };
 
   if (loading) return (
-    <>
-      
-      <div className="sub-page" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
-        <CircularProgress sx={{ color: "var(--accent)" }} />
-      </div>
-    </>
+    <div className="sub-page" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+      <CircularProgress sx={{ color: "var(--accent)" }} />
+    </div>
   );
 
   return (
     <>
       <div className="sub-page">
-
-        {/* NAV */}
         <nav className="sub-nav">
-          <div className="sub-logo" onClick={() => navigate("/")}>
-            <div className="sub-logo-icon"><Movie sx={{ fontSize: 18 }} /></div>
-            AFRICAN CINEMA
-          </div>
+          <Box
+            className="af-logo"
+            onClick={() => navigate("/")}
+            sx={{ flexShrink: 0, cursor: "pointer" }}
+          >
+            <div className="af-logo-icon">
+              <Public sx={{ fontSize: 16 }} />
+            </div>
+            <span className="af-logo-text-afro">AFRO</span>
+            <span className="af-logo-text-cine">CINÉ</span>
+          </Box>
           <Button
             className="sub-back-btn"
             startIcon={<ArrowBack sx={{ fontSize: 15 }} />}
@@ -288,11 +301,15 @@ function SubmitMoviePage() {
         </nav>
 
         <div className="sub-body">
-          <Typography className="sub-page-title">Submit a Film</Typography>
-          <Typography className="sub-page-sub">
-            Know an African film that's not on our platform? Submit it for review.
-            Once approved it will appear in the African Cinema section for everyone to discover.
-          </Typography>
+          <div className="sub-hero-card fade-up">
+            <div>
+              <Typography className="sub-page-title">Submit a Film</Typography>
+              <Typography className="sub-page-sub">
+                Know an African film that is missing from our library? Submit it for review and help build the archive.
+              </Typography>
+            </div>
+            <div className="sub-hero-badge">Community submissions</div>
+          </div>
 
           {/* Eligibility banner */}
           {canSubmit !== false && (
@@ -503,15 +520,12 @@ function SubmitMoviePage() {
                     {form.cast_list.length > 0 && (
                       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1.5 }}>
                         {form.cast_list.map(name => (
-                          <Chip
-                            key={name} label={name} onDelete={() => removeCast(name)}
-                            sx={{
-                              background: "var(--raised)", color: "#e0e0e8",
-                              fontFamily: "var(--font-body)", fontSize: 12,
-                              border: "1px solid var(--border)",
-                              "& .MuiChip-deleteIcon": { color: "var(--muted)", "&:hover": { color: "#ff6b6b" } },
-                            }}
-                          />
+                            <Chip
+    key={name}
+    label={name}
+    onDelete={() => removeCast(name)}
+    className="sub-cast-chip"
+  />
                         ))}
                       </Box>
                     )}
@@ -525,14 +539,7 @@ function SubmitMoviePage() {
                         <button
                           key={genre}
                           onClick={() => toggleGenre(genre)}
-                          style={{
-                            background: form.genres.includes(genre) ? "rgba(93,232,197,0.12)" : "var(--raised)",
-                            border: `1px solid ${form.genres.includes(genre) ? "rgba(93,232,197,0.3)" : "var(--border)"}`,
-                            color: form.genres.includes(genre) ? "var(--accent2)" : "var(--muted)",
-                            borderRadius: "20px", padding: "4px 12px",
-                            fontSize: 12, fontFamily: "var(--font-body)",
-                            cursor: "pointer", transition: "all 0.2s",
-                          }}
+                          className={`sub-genre-btn${form.genres.includes(genre) ? " active" : ""}`}
                         >
                           {genre}
                         </button>

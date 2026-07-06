@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./MovieDetailPage.css";
-import { Typography, Button, Chip, CircularProgress } from "@mui/material";
-import { ArrowBack, Star, PlayArrow, Movie as MovieIcon } from "@mui/icons-material";
+import { Typography, Button, Chip, CircularProgress, Box, } from "@mui/material";
+import { ArrowBack, Star, Public, PlayArrow, Movie as MovieIcon } from "@mui/icons-material";
 
 function useFonts() {
   useEffect(() => {
-    const id = "gfonts-cinemalist";
+    const id = "gfonts-afrocine";
     if (document.getElementById(id)) return;
     const link = document.createElement("link");
     link.id = id; link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap";
+    link.href = "https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap";
     document.head.appendChild(link);
   }, []);
 }
@@ -86,8 +86,9 @@ function MovieDetailPage() {
       <div className="md-page">
         <nav className="md-nav">
           <div className="md-logo" onClick={() => navigate("/")}>
-            <div className="md-logo-icon"><MovieIcon sx={{ fontSize: 18 }} /></div>
-            AFRICAN CINEMA
+            <div className="md-logo-icon"><MovieIcon sx={{ fontSize: 16 }} /></div>
+            <span className="md-logo-text-afro">AFRO</span>
+            <span className="md-logo-text-cine">CINÉ</span>
           </div>
         </nav>
         <div className="md-empty">
@@ -110,10 +111,17 @@ function MovieDetailPage() {
 
       {/* NAV */}
       <nav className="md-nav">
-        <div className="md-logo" onClick={() => navigate("/")}>
-          <div className="md-logo-icon"><MovieIcon sx={{ fontSize: 18 }} /></div>
-          AFRICAN CINEMA
-        </div>
+                  <Box
+                    className="af-logo"
+                    onClick={() => navigate("/")}
+                    sx={{ flexShrink: 0, cursor: "pointer" }}
+                  >
+                    <div className="af-logo-icon">
+                      <Public sx={{ fontSize: 16 }} />
+                    </div>
+                    <span className="af-logo-text-afro">AFRO</span>
+                    <span className="af-logo-text-cine">CINÉ</span>
+                  </Box>
         <Button
           className="md-back-btn"
           startIcon={<ArrowBack sx={{ fontSize: 16 }} />}

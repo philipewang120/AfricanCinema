@@ -12,17 +12,18 @@ import {
 import { TrailerModal } from "./MovieDetailPage";
 import "./AfricanPage.css";
 import { API_URL } from "/src/config";
+import Footer from "../components/Footer";
 
 
 
 
 function useFonts() {
   useEffect(() => {
-    const id = "gfonts-cinemalist";
+    const id = "gfonts-afrocine";
     if (document.getElementById(id)) return;
     const link = document.createElement("link");
     link.id = id; link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap";
+    link.href = "https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap";
     document.head.appendChild(link);
   }, []);
 }
@@ -543,16 +544,17 @@ function AfricanPage() {
             }}
           >
             {/* LEFT — Logo */}
-            <Box
-              className="af-logo"
-              onClick={() => navigate("/")}
-              sx={{ flexShrink: 0, cursor: "pointer" }}
-            >
-              <div className="af-logo-icon">
-                <Public sx={{ fontSize: 18 }} />
-              </div>
-              AFRICAN CINEMA
-            </Box>
+<Box
+  className="af-logo"
+  onClick={() => navigate("/")}
+  sx={{ flexShrink: 0, cursor: "pointer" }}
+>
+  <div className="af-logo-icon">
+    <Public sx={{ fontSize: 16 }} />
+  </div>
+  <span className="af-logo-text-afro">AFRO</span>
+  <span className="af-logo-text-cine">CINÉ</span>
+</Box>
 
             {/* CENTER — Search + Submit */}
             <Box
@@ -567,28 +569,12 @@ function AfricanPage() {
             >
               <AfSearchBar navigate={navigate} />
 
-              <Button
-                onClick={() => navigate("/submit")}
-                sx={{
-                  background: "rgba(93,232,197,0.08)",
-                  border: "1px solid rgba(93,232,197,0.2)",
-                  borderRadius: "10px",
-                  color: "var(--accent2)",
-                  fontFamily: "var(--font-body)",
-                  fontWeight: 600,
-                  fontSize: 12,
-                  textTransform: "none",
-                  padding: "5px 14px",
-                  whiteSpace: "nowrap",
-                  transition: "all 0.2s",
-                  "&:hover": {
-                    background: "rgba(93,232,197,0.15)",
-                    borderColor: "rgba(93,232,197,0.4)",
-                  },
-                }}
-              >
-                + Submit a Film
-              </Button>
+           <Button
+  className="af-submit-btn"
+  onClick={() => navigate("/submit")}
+>
+  + Submit a Film
+</Button>
 
             </Box>
 
@@ -604,26 +590,11 @@ function AfricanPage() {
                   {/* Admin button — only visible to admins */}
                   {role === "admin" && (
                     <Button
-                      onClick={() => navigate("/admin")}
-                      sx={{
-                        background: "rgba(255,100,100,0.08)",
-                        border: "1px solid rgba(255,100,100,0.2)",
-                        borderRadius: "10px",
-                        color: "#ff6b6b",
-                        fontFamily: "var(--font-body)",
-                        fontWeight: 600,
-                        fontSize: 12,
-                        textTransform: "none",
-                        padding: "5px 14px",
-                        transition: "all 0.2s",
-                        "&:hover": {
-                          background: "rgba(255,100,100,0.15)",
-                          borderColor: "rgba(255,100,100,0.4)",
-                        },
-                      }}
-                    >
-                      Admin
-                    </Button>
+  className="af-admin-btn"
+  onClick={() => navigate("/admin")}
+>
+  Admin
+</Button>
                   )}
                   <div className="af-profile-trigger" onClick={handleMenuOpen}>
                     {profilePic ? (
@@ -693,40 +664,14 @@ function AfricanPage() {
                 <>
                   <Button
                     onClick={() => navigate("/login")}
-                    sx={{
-                      background: "none",
-                      border: "1px solid var(--border)",
-                      borderRadius: "10px",
-                      color: "#e0e0e8",
-                      fontFamily: "var(--font-body)",
-                      fontWeight: 500,
-                      fontSize: 13,
-                      textTransform: "none",
-                      padding: "5px 16px",
-                      transition: "all 0.2s",
-                      "&:hover": {
-                        background: "rgba(255,255,255,0.05)",
-                        borderColor: "rgba(255,255,255,0.18)",
-                      },
-                    }}
+                    className="login-btn"
                   >
                     Log in
                   </Button>
 
                   <Button
                     onClick={() => navigate("/register")}
-                    sx={{
-                      background: "var(--accent)",
-                      borderRadius: "10px",
-                      color: "var(--ink)",
-                      fontFamily: "var(--font-body)",
-                      fontWeight: 700,
-                      fontSize: 13,
-                      textTransform: "none",
-                      padding: "5px 16px",
-                      transition: "all 0.2s",
-                      "&:hover": { background: "#f0d050" },
-                    }}
+                    className="register-btn"
                   >
                     Register
                   </Button>
@@ -739,6 +684,7 @@ function AfricanPage() {
 
         {/* ── HERO ── */}
         <div className="af-hero">
+          <div className="af-hero-blob" />
           {featured?.backdrop_path ? (
             <div
               className="af-hero-bg"
@@ -940,6 +886,7 @@ function AfricanPage() {
           </div>
 
         </div>
+        <Footer />
       </div>
     </>
   );

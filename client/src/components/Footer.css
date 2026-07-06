@@ -1,0 +1,132 @@
+/* ── AfroCiné Footer ─────────────────────────────────────────────────── */
+.footer {
+  position: relative;
+  background: var(--deep);
+  border-top: 1px solid var(--border);
+  padding: 52px 56px 32px;
+  margin-top: auto;
+}
+@media (max-width: 600px) { .footer { padding: 40px 20px 28px; } }
+
+/* Signature electric glow line at the top edge */
+.footer-glow-line {
+  position: absolute;
+  top: -1px; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--electric) 30%,
+    var(--gold) 60%,
+    transparent 100%
+  );
+  opacity: 0.6;
+}
+
+/* ── INNER ROW ───────────────────────────────────────────────────────── */
+.footer-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+@media (max-width: 700px) {
+  .footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 28px;
+    margin-bottom: 28px;
+  }
+}
+
+/* ── BRAND ───────────────────────────────────────────────────────────── */
+.footer-brand { max-width: 320px; }
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  cursor: default;
+}
+
+.footer-logo-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--electric), var(--gold));
+  flex-shrink: 0;
+}
+
+.footer-logo-afro {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 800;
+  letter-spacing: 3px;
+  color: var(--gold);
+}
+.footer-logo-cine {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 800;
+  letter-spacing: 3px;
+  color: var(--text);
+}
+
+.footer-tagline {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── LINKS ───────────────────────────────────────────────────────────── */
+.footer-links {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+}
+@media (max-width: 700px) {
+  .footer-links {
+    flex-direction: row;
+    gap: 20px;
+  }
+}
+
+.footer-link {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color var(--transition);
+  width: fit-content;
+}
+.footer-link:hover { color: var(--electric); }
+
+/* ── BOTTOM BAR ──────────────────────────────────────────────────────── */
+.footer-bottom {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.footer-legal {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  opacity: 0.7;
+  line-height: 1.6;
+}
+.footer-trademark { max-width: 460px; text-align: right; }
+@media (max-width: 700px) {
+  .footer-trademark { text-align: left; max-width: 100%; }
+}
