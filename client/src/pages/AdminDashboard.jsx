@@ -513,11 +513,13 @@ function AdminDashboard() {
   onClick={() => navigate("/")}
   sx={{ flexShrink: 0, cursor: "pointer" }}
 >
-  <div className="af-logo-icon">
-    <Public sx={{ fontSize: 16 }} />
-  </div>
-  <span className="af-logo-text-afro">AFRO</span>
-  <span className="af-logo-text-cine">CINÉ</span>
+   <img
+    src="/images/logo.png"
+    alt="AfroCiné"
+    className="af-logo-img"
+  />
+  <span className="adm-logo-text-afro">AFRO</span>
+  <span className="adm-logo-text-cine">CINÉ</span>
 </Box>
           <span className="adm-badge">ADMIN DASHBOARD</span>
           <Button

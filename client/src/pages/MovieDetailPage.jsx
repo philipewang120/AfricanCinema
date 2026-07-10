@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./MovieDetailPage.css";
+import "./AfricanPage.css";
 import { Typography, Button, Chip, CircularProgress, Box, } from "@mui/material";
 import { ArrowBack, Star, Public, PlayArrow, Movie as MovieIcon } from "@mui/icons-material";
 
@@ -116,11 +117,13 @@ function MovieDetailPage() {
                     onClick={() => navigate("/")}
                     sx={{ flexShrink: 0, cursor: "pointer" }}
                   >
-                    <div className="af-logo-icon">
-                      <Public sx={{ fontSize: 16 }} />
-                    </div>
-                    <span className="af-logo-text-afro">AFRO</span>
-                    <span className="af-logo-text-cine">CINÉ</span>
+                     <img
+    src="/images/logo.png"
+    alt="AfroCiné"
+    className="af-logo-img"
+  />
+  <span className="af-logo-text-afro">AFRO</span>
+  <span className="af-logo-text-cine">CINÉ</span>
                   </Box>
         <Button
           className="md-back-btn"

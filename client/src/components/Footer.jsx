@@ -24,11 +24,15 @@ function Footer() {
   onClick={() => navigate("/")}
   sx={{ flexShrink: 0, cursor: "pointer" }}
 >
-  <div className="af-logo-icon">
-    <Public sx={{ fontSize: 16 }} />
-  </div>
-  <span className="af-logo-text-afro">AFRO</span>
-  <span className="af-logo-text-cine">CINÉ</span>
+  <div className="footer-logo">
+  <img
+    src="/images/logo.png"
+    alt="AfroCiné"
+    className="footer-logo-img"
+  />
+  <span className="footer-logo-afro">AFRO</span>
+  <span className="footer-logo-cine">CINÉ</span>
+</div>
 </Box>
           <p className="footer-tagline">
             Celebrating African cinema — past, present and future.

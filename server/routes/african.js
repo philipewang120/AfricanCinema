@@ -608,8 +608,6 @@ router.get("/african/my-submissions", verifyToken, async (req, res) => {
 });
 
 // ── GET MOVIE DETAILS BY TMDB ID ─────
-
-
 router.get("/african/movie/:tmdbId", async (req, res) => {
   try {
     const { tmdbId } = req.params;
@@ -709,6 +707,16 @@ router.get("/african/movie/:tmdbId", async (req, res) => {
 
 // ── AFRICAN CLASSICS (pre-2000) ───────────────────────────────────────────────
 router.get("/african/classics", async (req, res) => {
+
+  const key = `classics-${req.query.tab || "all"}`;
+
+  const cached = cache.get(key);
+
+  if (cached) {
+    console.log("✅ Cache HIT:", key);
+    return res.json(cached);
+  } 
+  console.log("🗄️ Cache MISS:", key);
   try {
     const { tab = "all" } = req.query;
     const regions = getTabRegions(tab);
@@ -738,7 +746,9 @@ router.get("/african/classics", async (req, res) => {
       params
     );
 
-    res.json({ movies: result.rows, total: result.rows.length });
+    const response = { movies: result.rows, total: result.rows.length };
+    cache.set(key, response);
+    res.json(response);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch classics" });
@@ -747,6 +757,15 @@ router.get("/african/classics", async (req, res) => {
 
 // ── COUNTRY SPOTLIGHTS (best 8 per region for All Africa homepage) ────────────
 router.get("/african/spotlights", async (req, res) => {
+  const key = "spotlights";
+
+  const cached = cache.get(key);
+
+  if (cached) {
+    console.log("✅ Cache HIT:", key);
+    return res.json(cached);
+  }
+  console.log("🗄️ Cache MISS:", key) ;
   try {
     const SPOTLIGHT_REGIONS = [
       { key: "CM", label: "Best of Cameroon", regions: ["CM"] },
@@ -783,7 +802,9 @@ router.get("/african/spotlights", async (req, res) => {
       }
     }
 
-    res.json({ spotlights });
+    const response = { spotlights };
+    cache.set(key, response);
+    res.json(response);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch spotlights" });

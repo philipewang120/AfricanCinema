@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import passport from "passport";
+import compression from "compression";
 import pg from "pg";
 
 
@@ -40,6 +41,8 @@ app.use(
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(passport.initialize());
+app.use(compression());
+app.use(express.static("public"));
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", service: "african-cinema" });

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch, getToken, saveToken } from "../api";
 import "./ProfileSettings.css";
+import "./AfricanPage.css";
 import {
   Box, Button, TextField, Typography, Stack,
   Switch, FormControlLabel, Avatar, CircularProgress,
@@ -195,11 +196,13 @@ function ProfileSettings() {
           onClick={() => navigate("/")}
           sx={{ flexShrink: 0, cursor: "pointer" }}
         >
-          <div className="af-logo-icon">
-            <Public sx={{ fontSize: 16 }} />
-          </div>
-          <span className="af-logo-text-afro">AFRO</span>
-          <span className="af-logo-text-cine">CINÉ</span>
+           <img
+    src="/images/logo.png"
+    alt="AfroCiné"
+    className="af-logo-img"
+  />
+  <span className="af-logo-text-afro">AFRO</span>
+  <span className="af-logo-text-cine">CINÉ</span>
         </Box>
         <Button
           className="adm-back-btn set-back-btn"

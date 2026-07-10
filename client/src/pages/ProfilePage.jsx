@@ -200,11 +200,13 @@ function ProfileNav({ navigate }) {
     <nav className="adm-nav prof-nav">
       <Box className="af-logo prof-logo" onClick={() => navigate("/")}
         role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && navigate("/")}>
-        <div className="af-logo-icon">
-            <Public sx={{ fontSize: 16 }} />
-          </div>
-          <span className="af-logo-text-afro">AFRO</span>
-          <span className="af-logo-text-cine">CINÉ</span>
+       <img
+    src="/images/logo.png"
+    alt="AfroCiné"
+    className="af-logo-img"
+  />
+  <span className="af-logo-text-afro">AFRO</span>
+  <span className="af-logo-text-cine">CINÉ</span>
       </Box>
       <Button
         className="adm-back-btn prof-back-btn"

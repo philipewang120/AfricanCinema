@@ -12,9 +12,13 @@ function ContactPage() {
     <div className="contact-page adm-page">
       <nav className="adm-nav contact-nav">
         <div className="af-logo" onClick={() => navigate("/")} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && navigate("/")}>
-          <div className="af-logo-icon"><Public sx={{ fontSize: 16 }} /></div>
-            <span className="af-logo-text-afro">AFRO</span>
-            <span className="af-logo-text-cine">CINÉ</span>
+          <img
+    src="/images/logo.png"
+    alt="AfroCiné"
+    className="af-logo-img"
+  />
+  <span className="af-logo-text-afro">AFRO</span>
+  <span className="af-logo-text-cine">CINÉ</span>
         </div> 
         <button className="adm-back-btn" onClick={() => navigate(-1)}>
           <ArrowBack sx={{ fontSize: 16 }} /> Back

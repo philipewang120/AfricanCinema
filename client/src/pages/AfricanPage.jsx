@@ -549,9 +549,11 @@ function AfricanPage() {
   onClick={() => navigate("/")}
   sx={{ flexShrink: 0, cursor: "pointer" }}
 >
-  <div className="af-logo-icon">
-    <Public sx={{ fontSize: 16 }} />
-  </div>
+  <img
+    src="/images/logo.png"
+    alt="AfroCiné"
+    className="af-logo-img"
+  />
   <span className="af-logo-text-afro">AFRO</span>
   <span className="af-logo-text-cine">CINÉ</span>
 </Box>

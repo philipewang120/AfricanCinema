@@ -6,7 +6,7 @@ import {
 import { Lock, Visibility, VisibilityOff, Public, Email,
   Google, Facebook, GitHub, Movie,} from "@mui/icons-material";
 import "./LoginPage.css";
-import "./AfricanPage.css"; // Import the AfricanPage.css file for logo styles
+import "./AfricanPage.css"; 
 
 function useFonts() {
   useEffect(() => {
@@ -66,7 +66,11 @@ function LoginPage() {
       <div className="auth-page">
         <nav className="auth-nav">
           <div className="af-logo" onClick={() => navigate("/")}>
-  <div className="af-logo-icon"><Public sx={{ fontSize: 16 }} /></div>
+ <img
+    src="/images/logo.png"
+    alt="AfroCiné"
+    className="af-logo-img"
+  />
   <span className="af-logo-text-afro">AFRO</span>
   <span className="af-logo-text-cine">CINÉ</span>
 </div>

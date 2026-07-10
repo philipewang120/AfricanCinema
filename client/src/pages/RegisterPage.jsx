@@ -59,7 +59,11 @@ function RegisterPage() {
       <div className="auth-page">
         <nav className="auth-nav">
          <div className="af-logo" onClick={() => navigate("/")}>
-  <div className="af-logo-icon"><Public sx={{ fontSize: 16 }} /></div>
+   <img
+    src="/images/logo.png"
+    alt="AfroCiné"
+    className="af-logo-img"
+  />
   <span className="af-logo-text-afro">AFRO</span>
   <span className="af-logo-text-cine">CINÉ</span>
 </div>

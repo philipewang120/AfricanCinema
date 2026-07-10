@@ -116,14 +116,20 @@ body {
 }
 .adm-logo:hover { opacity: 0.85; }
 
-.adm-logo-icon {
-  width: 36px; height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--electric), var(--gold));
-  display: flex; align-items: center; justify-content: center;
-  color: #fff;
-  font-size: 16px;
-  animation: glow-pulse 3s ease-in-out infinite;
+.af-logo-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+  /* subtle outer glow matching the electric/gold system */
+  box-shadow: 0 0 12px rgba(123,47,255,0.35), 0 0 24px rgba(232,160,32,0.15);
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+.af-logo:hover .af-logo-img {
+  box-shadow: 0 0 20px rgba(123,47,255,0.55), 0 0 40px rgba(232,160,32,0.25);
+  transform: scale(1.05);
 }
 .adm-logo-text-afro { color: var(--gold); }
 .adm-logo-text-cine { color: var(--text); }

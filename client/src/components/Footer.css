@@ -53,22 +53,28 @@
   cursor: default;
 }
 
-.footer-logo-icon {
-  width: 32px; height: 32px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--electric), var(--gold));
+/* In Footer.css — replace .footer-logo-icon */
+.footer-logo-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 7px;
+  object-fit: cover;
   flex-shrink: 0;
+  display: block;
+  opacity: 0.85;
+  transition: opacity var(--transition);
 }
+.footer-logo:hover .footer-logo-img { opacity: 1; }
 
 .footer-logo-afro {
   font-family: var(--font-display);
-  font-size: 20px; font-weight: 800;
+  font-size: 20px; font-weight: 600;
   letter-spacing: 3px;
   color: var(--gold);
 }
 .footer-logo-cine {
   font-family: var(--font-display);
-  font-size: 20px; font-weight: 800;
+  font-size: 20px; font-weight: 600;
   letter-spacing: 3px;
   color: var(--text);
 }
