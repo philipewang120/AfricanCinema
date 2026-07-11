@@ -417,6 +417,20 @@ function AfricanPage() {
     })();
   }, []);
 
+  // Simple cache — lives for the session, resets on page refresh
+const queryCache = new Map();
+
+async function cachedFetch(url, ttlMs = 1000 * 60 * 15) {
+  const cached = queryCache.get(url);
+  if (cached && Date.now() - cached.timestamp < ttlMs) {
+    return cached.data;
+  }
+  const res = await fetch(url);
+  const data = await res.json();
+  queryCache.set(url, { data, timestamp: Date.now() });
+  return data;
+}
+
   function handleLogout() {
     localStorage.removeItem("token");
     navigate("/login");
@@ -461,10 +475,10 @@ function AfricanPage() {
   async function loadTopRated() {
     setLoadingTop(true);
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/african/top-rated?tab=${activeTab}&period=${period}`
+      const data = await cachedFetch(
+        `${import.meta.env.VITE_API_URL}/african/top-rated?tab=${activeTab}&period=${period}`,
+      1000 * 60 * 15 // 15 min TTL 
       );
-      const data = await res.json();
       setTopRated(data.movies || []);
     } catch { setTopRated([]); }
     finally { setLoadingTop(false); }
@@ -474,11 +488,11 @@ function AfricanPage() {
     if (page === 1) setLoadingLatest(true);
     else setLoadingMore(true);
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/african/latest?tab=${activeTab}&page=${page}`
+      const data = await cachedFetch(
+        `${import.meta.env.VITE_API_URL}/african/latest?tab=${activeTab}&page=${page}`,
+      1000 * 60 * 15
       );
       console.log("API URL:", import.meta.env.VITE_API_URL); // Debugging line to check the API URL
-      const data = await res.json();
       const movies = data.movies || [];
       if (append) {
         setLatest(prev => [...prev, ...movies]);
@@ -497,8 +511,9 @@ function AfricanPage() {
   async function loadClassics() {
     setLoadingClassics(true);
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/african/classics?tab=${activeTab}`
+      const res = await cachedFetch(
+        `${import.meta.env.VITE_API_URL}/african/classics?tab=${activeTab}`, 
+      1000 * 60 * 15
       );
       const data = await res.json();
       setClassics(data.movies || []);
@@ -509,8 +524,8 @@ function AfricanPage() {
   async function loadSpotlights() {
     setLoadingSpotlights(true);
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/african/spotlights`
+      const res = await cachedFetch(
+        `${import.meta.env.VITE_API_URL}/african/spotlights`, 1000 * 60 * 15
       );
       const data = await res.json();
       setSpotlights(data.spotlights || []);
@@ -522,6 +537,8 @@ function AfricanPage() {
     setLatestPage(next);
     loadLatest(next, true);
   }
+
+  
 
   const featuredCountry = featured?.origin_country?.[0];
 
