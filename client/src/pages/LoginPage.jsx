@@ -7,6 +7,7 @@ import { Lock, Visibility, VisibilityOff, Public, Email,
   Google, Facebook, GitHub, Movie,} from "@mui/icons-material";
 import "./LoginPage.css";
 import "./AfricanPage.css"; 
+import SEO from "../components/SEO";
 
 function useFonts() {
   useEffect(() => {
@@ -62,6 +63,7 @@ function LoginPage() {
 
   return (
     <>
+    <SEO title="Sign In" noindex={true} />
       
       <div className="auth-page">
         <nav className="auth-nav">

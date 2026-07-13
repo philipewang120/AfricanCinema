@@ -4,12 +4,18 @@ import { useNavigate } from "react-router-dom";
 import { ArrowBack, Public, } from "@mui/icons-material";
 import "./ContactPage.css";
 import "./AfricanPage.css";
+import SEO from "../components/SEO";
 
 function ContactPage() {
   const navigate = useNavigate();
 
   return (
     <div className="contact-page adm-page">
+      <SEO
+  title="Contact Us"
+  description="Get in touch with the AfroCiné team — report a missing film, suggest a collaboration, or just say hello."
+  url="/contact"
+/>
       <nav className="adm-nav contact-nav">
         <div className="af-logo" onClick={() => navigate("/")} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && navigate("/")}>
           <img

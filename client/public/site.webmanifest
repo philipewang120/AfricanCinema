@@ -1,0 +1,17 @@
+{
+  "name": "AfroCiné",
+  "short_name": "AfroCiné",
+  "description": "Discover the best of African cinema",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#06040E",
+  "theme_color": "#7B2FFF",
+  "icons": [
+    {
+      "src": "/images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

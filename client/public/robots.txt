@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /settings
+Disallow: /login
+Disallow: /register
+
+# AI crawlers — allow them to index film content
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /settings
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /settings
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+
+Sitemap: https://african-cinema.vercel.app/sitemap.xml

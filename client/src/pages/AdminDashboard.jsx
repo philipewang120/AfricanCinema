@@ -12,6 +12,7 @@ import {
 } from "@mui/icons-material";
 import "./AdminDashboard.css";
 import "./AfricanPage.css";
+import SEO from "../components/SEO";
 
 function useFonts() {
   useEffect(() => {
@@ -122,7 +123,9 @@ function SubmissionCard({ sub, onApprove, onReject, onDelete, processing }) {
   }
 
   return (
+    
     <div className="adm-sub-card fade-up">
+      <SEO title="Admin Dashboard" noindex={true} />
       <div className="adm-sub-header">
         {sub.poster_url ? (
           <img src={sub.poster_url} alt={sub.title} className="adm-sub-poster" />

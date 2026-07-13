@@ -1,0 +1,25 @@
+# AfroCiné — African Cinema Discovery Platform
+# https://african-cinema.vercel.app
+
+AfroCiné is a comprehensive database and discovery platform for African cinema,
+covering films from Nigeria (Nollywood), Cameroon, South Africa, Ghana, Egypt,
+Senegal, Mali, Côte d'Ivoire, and across the African continent and diaspora.
+
+## What we cover
+- Feature films, documentaries, and short films from African directors
+- Classic African cinema (pre-2000) including FESPACO winners
+- Contemporary Nollywood releases
+- Francophone African cinema
+- North African (Arab Africa) cinema
+- Community-submitted films and editorial curation
+
+## Data sources
+Films are sourced from TMDB, director filmography sweeps, Wikipedia film lists,
+FESPACO festival selections, Africa Magic Viewers Choice Award nominees, and
+community submissions reviewed by our editorial team.
+
+## API / Data
+We do not currently offer a public API.
+
+## Contact
+https://african-cinema.vercel.app/contact

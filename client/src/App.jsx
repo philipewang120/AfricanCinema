@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "react-error-boundary";
 import { ProtectedRoute, AdminRoute } from "./components/ProtectedRoute";
+import { HelmetProvider } from "react-helmet-async";
 
 import AfricanPage from "./pages/AfricanPage";
 import SubmitMoviePage from "./pages/SubmitMoviePage";
@@ -12,9 +13,13 @@ import ProfilePage from "./pages/ProfilePage";
 import MovieDetailPage from "./pages/MovieDetailPage"
 import ContactPage from "./pages/ContactPage"
 
+
+
 function App() {
   return (
-    <BrowserRouter>
+    <HelmetProvider>
+
+      <BrowserRouter>
       <ErrorBoundary>
         <Routes>
           {/* Public */}
@@ -37,6 +42,9 @@ function App() {
         </Routes>
       </ErrorBoundary>
     </BrowserRouter>
+
+    </HelmetProvider>
+    
   );
 }
 

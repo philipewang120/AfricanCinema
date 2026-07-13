@@ -13,6 +13,9 @@ import { TrailerModal } from "./MovieDetailPage";
 import "./AfricanPage.css";
 import { API_URL } from "/src/config";
 import Footer from "../components/Footer";
+import SEO from "../components/SEO";
+
+
 
 
 
@@ -544,6 +547,11 @@ async function cachedFetch(url, ttlMs = 1000 * 60 * 15) {
 
   return (
     <>
+    <SEO
+  title="African Cinema Discovery"
+  description="Discover the best African films — Nollywood, Francophone Africa, Arab Africa, South Africa and beyond. Top rated, latest releases and classics."
+  url="/"
+/>
       <AfToastContainer />
 
       <div className="af-page">

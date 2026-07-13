@@ -4,6 +4,8 @@ import "./MovieDetailPage.css";
 import "./AfricanPage.css";
 import { Typography, Button, Chip, CircularProgress, Box, } from "@mui/material";
 import { ArrowBack, Star, Public, PlayArrow, Movie as MovieIcon } from "@mui/icons-material";
+import SEO from "../components/SEO";
+import { Helmet } from "react-helmet-async";
 
 function useFonts() {
   useEffect(() => {
@@ -108,7 +110,67 @@ function MovieDetailPage() {
   const releaseYear = movie.release_date?.slice(0, 4);
 
   return (
+    
     <div className="md-page">
+    <SEO
+      title={movie.title}
+      description={
+       movie.synopsis
+          ? movie.synopsis.slice(0, 155) + "…"
+          : `Watch ${movie.title} — African cinema on AfroCiné`
+      }
+      image={
+        movie.backdrop_path
+    ? resolveImageUrl(
+        movie.backdrop_path,
+        movie.backdrop_is_full_url,
+        "w1280"
+      )
+          : undefined
+      }
+      url={`/movie/${tmdbId}`}
+      type="video.movie"
+    />
+    <Helmet>
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Movie",
+          name: movie.title,
+          description: movie.synopsis,
+         image: movie.poster_path
+  ? resolveImageUrl(
+      movie.poster_path,
+      movie.poster_is_full_url,
+      "w500"
+    )
+  : undefined,
+          datePublished: movie.release_date,
+          director: movie.director
+            ? {
+                "@type": "Person",
+                name: movie.director,
+              }
+            : undefined,
+          actor: movie.cast?.slice(0, 5).map((c) => ({
+            "@type": "Person",
+            name: typeof c === "string" ? c : c.name,
+          })),
+          genre: movie.genres,
+          aggregateRating:
+            movie.vote_count > 0
+              ? {
+                  "@type": "AggregateRating",
+                  ratingValue: Number(movie.vote_average).toFixed(1),
+                  ratingCount: movie.vote_count,
+                  bestRating: "10",
+                  worstRating: "0",
+                }
+              : undefined,
+          url: `https://african-cinema.vercel.app/movie/${tmdbId}`,
+        })}
+      </script>
+    </Helmet>
 
       {/* NAV */}
       <nav className="md-nav">

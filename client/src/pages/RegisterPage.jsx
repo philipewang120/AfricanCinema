@@ -7,6 +7,7 @@ import { Lock, Visibility, VisibilityOff, Public, Email, Person,
   Google, Facebook, GitHub, Movie,} from "@mui/icons-material";
 import "./RegisterPage.css";
 import "./AfricanPage.css";
+import SEO from "../components/SEO";
 
 function useFonts() {
   useEffect(() => {
@@ -56,6 +57,7 @@ function RegisterPage() {
 
   return (
     <>
+    <SEO title="Create Account" noindex={true} />
       <div className="auth-page">
         <nav className="auth-nav">
          <div className="af-logo" onClick={() => navigate("/")}>
