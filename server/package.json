@@ -29,6 +29,7 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-local": "^1.0.0",
     "pg": "^8.20.0",
+    "prerender-node": "^3.8.3",
     "react-helmet-async": "^3.0.0"
   },
   "devDependencies": {
