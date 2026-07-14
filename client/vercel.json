@@ -3,6 +3,14 @@
     {
       "source": "/(.*)",
       "destination": "/index.html"
+    },
+     {
+      "source": "/sitemap.xml",
+      "destination": "https://africancinema.onrender.com/sitemap.xml"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/robots.txt"
     }
   ]
 }
