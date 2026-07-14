@@ -132,6 +132,29 @@ function MovieDetailPage() {
       type="video.movie"
     />
     <Helmet>
+      <title>{movie.title} — AfroCiné</title>
+  <meta name="description" content={movie.synopsis?.slice(0, 155)} />
+
+  {/* Open Graph — WhatsApp, Twitter, Facebook previews */}
+  <meta property="og:title" content={`${movie.title} — AfroCiné`} />
+  <meta property="og:description" content={movie.synopsis?.slice(0, 155)} />
+  <meta property="og:image" content={
+    movie.poster_is_full_url
+      ? movie.poster_path
+      : `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+  } />
+  <meta property="og:url" content={`https://african-cinema.vercel.app/movie/${movie.id}`} />
+  <meta property="og:type" content="video.movie" />
+  <meta property="og:site_name" content="AfroCiné" />
+
+  {/* Twitter card */}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={`${movie.title} — AfroCiné`} />
+  <meta name="twitter:image" content={
+    movie.poster_is_full_url
+      ? movie.poster_path
+      : `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+  } />
       <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",

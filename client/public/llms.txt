@@ -21,5 +21,11 @@ community submissions reviewed by our editorial team.
 ## API / Data
 We do not currently offer a public API.
 
+## Key pages
+- Homepage: https://african-cinema.vercel.app/
+- Submit a film: https://african-cinema.vercel.app/submit
+- Contact: https://african-cinema.vercel.app/contact
+- Sitemap: https://african-cinema.vercel.app/sitemap.xml
+
 ## Contact
 https://african-cinema.vercel.app/contact

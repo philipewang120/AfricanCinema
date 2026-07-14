@@ -811,53 +811,6 @@ router.get("/african/spotlights", async (req, res) => {
   }
 });
 
-//sitemap tells google about any indexable route
-router.get("/sitemap.xml", async (req, res) => {
-  try {
-    const BASE = "https://african-cinema.vercel.app";
 
-    // Get all approved movies
-    const movies = await db.query(
-      `SELECT tmdb_id, id, last_verified_at
-       FROM african_movies
-       WHERE status = 'approved'
-       ORDER BY last_verified_at DESC`
-    );
 
-    const staticPages = [
-      { url: "/",        priority: "1.0",  changefreq: "daily"   },
-      { url: "/contact", priority: "0.4",  changefreq: "monthly" },
-      { url: "/submit",  priority: "0.6",  changefreq: "monthly" },
-    ];
-
-    const moviePages = movies.rows.map(m => ({
-      url:        `/movie/${m.tmdb_id || m.id}`,
-      priority:   "0.8",
-      changefreq: "monthly",
-      lastmod:    m.last_verified_at
-        ? new Date(m.last_verified_at).toISOString().split("T")[0]
-        : new Date().toISOString().split("T")[0],
-    }));
-
-    const allPages = [...staticPages, ...moviePages];
-
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${allPages.map(p => `  <url>
-    <loc>${BASE}${p.url}</loc>
-    <changefreq>${p.changefreq}</changefreq>
-    <priority>${p.priority}</priority>
-    ${p.lastmod ? `<lastmod>${p.lastmod}</lastmod>` : ""}
-  </url>`).join("\n")}
-</urlset>`;
-
-    res.setHeader("Content-Type", "application/xml");
-    res.setHeader("Cache-Control", "public, max-age=86400"); // cache 24hr
-    res.send(xml);
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Failed to generate sitemap");
-  }
-});
 export default router;

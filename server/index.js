@@ -4,6 +4,7 @@ import cors from "cors";
 import passport from "passport";
 import compression from "compression";
 import pg from "pg";
+import prerender from "prerender-node";
 
 
 import "./config/passport.js";
@@ -12,6 +13,7 @@ import authRoutes from "./routes/auth.js";
 import africanRoutes from "./routes/african.js";
 import adminRoutes from "./routes/admin.js";
 import profileRoutes from "./routes/profile.js";
+import sitemapRoutes from "./routes/sitemap.js";
 import { startPipelineCron } from "./cron/pipelineJob.js";
 
 
@@ -43,6 +45,8 @@ app.use(express.json());
 app.use(passport.initialize());
 app.use(compression());
 app.use(express.static("public"));
+app.use(prerender.set("prerenderToken", process.env.PRERENDER_TOKEN));
+
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", service: "african-cinema" });
@@ -52,6 +56,7 @@ app.use("/", authRoutes);
 app.use("/", africanRoutes);
 app.use("/admin", adminRoutes);
 app.use("/", profileRoutes);
+app.use("/", sitemapRoutes);
 
 app.listen(port, () => {
   console.log(`African Cinema API running on port ${port}`);

@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { apiFetch, getToken } from "../api";
 import {
   Box, Button, Stack, Typography, Avatar, Tooltip, Toolbar, CircularProgress, Menu, MenuItem,
@@ -552,6 +553,15 @@ async function cachedFetch(url, ttlMs = 1000 * 60 * 15) {
   description="Discover the best African films — Nollywood, Francophone Africa, Arab Africa, South Africa and beyond. Top rated, latest releases and classics."
   url="/"
 />
+<Helmet>
+  <title>AfroCiné — African Cinema Discovery</title>
+  <meta name="description" content="Discover the best African films — Nollywood, Cameroonian, South African, Francophone and Arab African cinema in one place." />
+  <meta property="og:title" content="AfroCiné — African Cinema Discovery" />
+  <meta property="og:description" content="The home of African cinema. Browse, discover and submit African films." />
+  <meta property="og:image" content="https://african-cinema.vercel.app/images/logo.png" />
+  <meta property="og:type" content="website" />
+  <link rel="canonical" href="https://african-cinema.vercel.app" />
+</Helmet>
       <AfToastContainer />
 
       <div className="af-page">
