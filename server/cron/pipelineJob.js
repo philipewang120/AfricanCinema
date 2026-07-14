@@ -9,6 +9,7 @@ import { buildAllTabs }        from "../helpers/buildTabData.js";
 import { publishToDatabase }   from "../helpers/publishToDatabase.js";
 import { runActorSweep }    from "../helpers/actorSweep.js";
 import { runLanguageSweep } from "../helpers/languageSweep.js";
+import { generateSitemap } from "../helpers/generateSitemap.js";
 import db from "../db.js";
 
 // Track whether a job is currently running — prevents overlap if
@@ -64,6 +65,18 @@ const [directorResults, wikiResults, actorResults, languageResults] = await Prom
 
     const elapsed = ((Date.now() - startTime) / 1000 / 60).toFixed(1);
     console.log(`\n[Pipeline] ✓ Complete in ${elapsed} minutes at ${new Date().toISOString()}`);
+
+
+// Regenerate sitemap after publishing
+try {
+
+  console.log("\n[Pipeline] Regenerating sitemap...");
+  await generateSitemap();
+  console.log("[Pipeline] ✓ Sitemap regenerated");
+} catch (err) {
+  console.warn("[Pipeline] Failed to log pipeline run:", err.message);
+}
+
 
     // Log the run to DB so you have a history of when it last ran
     await db.query(
