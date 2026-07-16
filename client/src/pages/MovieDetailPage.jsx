@@ -7,16 +7,7 @@ import { ArrowBack, Star, Public, PlayArrow, Movie as MovieIcon } from "@mui/ico
 import SEO from "../components/SEO";
 import { Helmet } from "react-helmet-async";
 
-function useFonts() {
-  useEffect(() => {
-    const id = "gfonts-afrocine";
-    if (document.getElementById(id)) return;
-    const link = document.createElement("link");
-    link.id = id; link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap";
-    document.head.appendChild(link);
-  }, []);
-}
+
 
 function resolveImageUrl(path, isFullUrl, size = "w342") {
   if (!path) return null;
@@ -58,7 +49,7 @@ export function TrailerModal({ trailerKey, onClose }) {
 }
 
 function MovieDetailPage() {
-  useFonts();
+  
   const { tmdbId } = useParams();
   const navigate = useNavigate();
 

@@ -13,16 +13,7 @@ import {
 import "./SubmitMoviePage.css";
 import "./AfricanPage.css";
 
-function useFonts() {
-  useEffect(() => {
-    const id = "gfonts-afrocine";
-    if (document.getElementById(id)) return;
-    const link = document.createElement("link");
-    link.id = id; link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap";
-    document.head.appendChild(link);
-  }, []);
-}
+
 
 
 
@@ -66,7 +57,7 @@ const STREAMING_PLATFORMS = [
 ];
 
 function SubmitMoviePage() {
-  useFonts();
+ 
   const navigate = useNavigate();
   const debounceRef = useRef(null);
 

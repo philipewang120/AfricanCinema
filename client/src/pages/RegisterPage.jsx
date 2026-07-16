@@ -9,21 +9,12 @@ import "./RegisterPage.css";
 import "./AfricanPage.css";
 import SEO from "../components/SEO";
 
-function useFonts() {
-  useEffect(() => {
-    const id = "gfonts-afrocine";
-    if (document.getElementById(id)) return;
-    const link = document.createElement("link");
-    link.id = id; link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap";
-    document.head.appendChild(link);
-  }, []);
-}
+
 
 
 
 function RegisterPage() {
-  useFonts();
+  
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);

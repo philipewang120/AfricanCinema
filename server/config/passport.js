@@ -8,19 +8,20 @@ import bcrypt from "bcryptjs";
 import db from "../db.js";
 
 const saltRounds = 10;
+const DUMMY_HASH = "$2b$10$CwTycUXWue0Thq9StjUM0uJ8vAjJwLpFqMoyakOhBFhH0hOGENJta";
 
 passport.use(
   "local",
   new LocalStrategy({ usernameField: "email" }, async (email, password, cb) => {
     try {
       const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-      if (result.rows.length === 0) return cb(null, false);
-
       const user = result.rows[0];
-      bcrypt.compare(password, user.password, (err, valid) => {
-        if (err) return cb(err);
-        return valid ? cb(null, user) : cb(null, false);
-      });
+
+      const hashToCheck = user ? user.password : DUMMY_HASH;
+      const valid = await bcrypt.compare(password, hashToCheck);
+
+       if (!user || !valid) return cb(null, false);
+      return cb(null, user);
     } catch (err) {
       return cb(err);
     }

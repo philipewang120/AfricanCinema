@@ -19,19 +19,6 @@ import SEO from "../components/SEO";
 
 
 
-
-
-function useFonts() {
-  useEffect(() => {
-    const id = "gfonts-afrocine";
-    if (document.getElementById(id)) return;
-    const link = document.createElement("link");
-    link.id = id; link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap";
-    document.head.appendChild(link);
-  }, []);
-}
-
 function isFullUrl(str) {
   return !!(str && (str.startsWith("http://") || str.startsWith("https://")));
 }
@@ -121,12 +108,15 @@ function AfMovieCard({ movie, rank, navigate }) {
     ? Number(movie.vote_average).toFixed(1)
     : null;
 
-  // Resolve poster — full URL from community submissions or TMDB path
+  const isTmdbPath = movie.poster_path && !isFullUrl(movie.poster_path);
   const posterSrc = movie.poster_path
-    ? isFullUrl(movie.poster_path)
-      ? movie.poster_path
-      : `https://image.tmdb.org/t/p/w342${movie.poster_path}`
+    ? isTmdbPath
+      ? `https://image.tmdb.org/t/p/w342${movie.poster_path}`
+      : movie.poster_path
     : null;
+  const posterSrcSet = isTmdbPath
+    ? `https://image.tmdb.org/t/p/w185${movie.poster_path} 185w, https://image.tmdb.org/t/p/w342${movie.poster_path} 342w`
+    : undefined;
 
   return (
     <div className="af-movie-card" onClick={() => navigate(`/movie/${movie.tmdb_id || movie.id}`)}>
@@ -135,7 +125,9 @@ function AfMovieCard({ movie, rank, navigate }) {
           <img
             className="af-card-poster"
             src={posterSrc}
+            srcSet={posterSrcSet}
             alt={movie.title}
+            sizes="(max-width: 600px) 140px, 160px"
             loading="lazy"
           />
         ) : (
@@ -159,8 +151,6 @@ function AfMovieCard({ movie, rank, navigate }) {
     </div>
   );
 }
-
-
 
 // Horizontal scroll section
 function ScrollSection({ title, icon, movies, loading, showRank = false, rightContent, navigate }) {
@@ -337,7 +327,7 @@ function AfSearchBar({ navigate }) {
 
 // ── MAIN PAGE ─────────────────────────────────────────────
 function AfricanPage() {
-  useFonts();
+  
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState("all");
@@ -725,7 +715,7 @@ async function cachedFetch(url, ttlMs = 1000 * 60 * 15) {
           {featured?.backdrop_path ? (
             <div
               className="af-hero-bg"
-              style={{ backgroundImage: `url(https://image.tmdb.org/t/p/original${featured.backdrop_path})` }}
+              style={{ backgroundImage: `url(https://image.tmdb.org/t/p/w1280${featured.backdrop_path})` }}
             />
           ) : (
             <div className="af-hero-fallback">

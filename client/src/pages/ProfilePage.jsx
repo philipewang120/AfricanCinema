@@ -7,22 +7,10 @@ import SEO from "../components/SEO";
 import { Box, Button, Typography, Avatar, Chip, CircularProgress } from "@mui/material";
 import { Movie, ArrowBack, Lock, Star, Public} from "@mui/icons-material";
 
-function useFonts() {
-  useEffect(() => {
-    const id = "gfonts-afrocine";
-    const existingLink = document.getElementById(id);
-    if (existingLink) return;
 
-    const link = document.createElement("link");
-    link.id = id;
-    link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap";
-    document.head.appendChild(link);
-  }, []);
-}
 
 function ProfilePage() {
-  useFonts();
+  
   const { username } = useParams();
   const navigate = useNavigate();
 
