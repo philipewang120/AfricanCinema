@@ -37,7 +37,7 @@ function ContactPage() {
         </Button>
       </nav>
 
-      <div className="md-body contact-body">xs
+      <div className="md-body contact-body">
         <div className="contact-shell fade-up">
           <section className="contact-card">
             <span className="contact-kicker">Let’s connect</span>

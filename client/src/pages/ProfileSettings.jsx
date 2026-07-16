@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { apiFetch, getToken, saveToken } from "../api";
 import "./ProfileSettings.css";
 import "./AfricanPage.css";
+import "./AdminDashboard.css";
 import {
   Box, Button, TextField, Typography, Stack,
   Switch, FormControlLabel, Avatar, CircularProgress,

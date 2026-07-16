@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { apiFetch, getToken } from "../api";
 import "./ProfilePage.css";
 import "./AfricanPage.css";
+import "./AdminDashboard.css";
 import SEO from "../components/SEO";
 import { Box, Button, Typography, Avatar, Chip, CircularProgress } from "@mui/material";
 import { Movie, ArrowBack, Lock, Star, Public} from "@mui/icons-material";
