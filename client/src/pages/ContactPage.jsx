@@ -2,8 +2,10 @@
 
 import { useNavigate } from "react-router-dom";
 import { ArrowBack, Public, } from "@mui/icons-material";
+import { Button, } from "@mui/material";
 import "./ContactPage.css";
 import "./AfricanPage.css";
+import "./MovieDetailPage.css";
 import SEO from "../components/SEO";
 
 function ContactPage() {
@@ -16,7 +18,7 @@ function ContactPage() {
   description="Get in touch with the AfroCiné team — report a missing film, suggest a collaboration, or just say hello."
   url="/contact"
 />
-      <nav className="adm-nav contact-nav">
+      <nav className="md-nav contact-nav">
         <div className="af-logo" onClick={() => navigate("/")} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && navigate("/")}>
           <img
     src="/images/logo.png"
@@ -26,12 +28,16 @@ function ContactPage() {
   <span className="af-logo-text-afro">AFRO</span>
   <span className="af-logo-text-cine">CINÉ</span>
         </div> 
-        <button className="adm-back-btn" onClick={() => navigate(-1)}>
-          <ArrowBack sx={{ fontSize: 16 }} /> Back
-        </button>
+        <Button
+          className="md-back-btn"
+          startIcon={<ArrowBack sx={{ fontSize: 16 }} />}
+          onClick={() => navigate(-1)}
+        >
+          Back
+        </Button>
       </nav>
 
-      <div className="adm-body contact-body">
+      <div className="md-body contact-body">xs
         <div className="contact-shell fade-up">
           <section className="contact-card">
             <span className="contact-kicker">Let’s connect</span>

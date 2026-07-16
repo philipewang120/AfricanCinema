@@ -128,6 +128,24 @@
   transition: transform var(--transition), border-color var(--transition), background var(--transition);
 }
 
+.contact-back-btn{
+  background: var(--raised) !important;
+  color: var(--muted) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 50px !important;
+  text-transform: none !important;
+  font-family: var(--font-body) !important;
+  font-size: 13px !important;
+  padding: 6px 18px !important;
+  transition: all var(--transition) !important;
+}
+
+.contact-back-btn:hover {
+  color: var(--text) !important;
+  border-color: var(--electric) !important;
+  background: var(--elec-dim) !important;
+}
+
 .contact-btn:hover {
   transform: translateY(-1px);
 }
